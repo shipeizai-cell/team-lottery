@@ -467,27 +467,30 @@
                 <div class="status-card success">
                     <i class="fas fa-check-circle status-icon"></i>
                     <div class="status-content">
-                        <h4>系统检测完成</h4>
-                        <p>检测到这是首次使用，将引导您完成Supabase配置</p>
+                        <h4>✅ 系统已预配置完成！</h4>
+                        <p>您的投票系统已准备就绪，所有配置已完成</p>
                     </div>
                 </div>
 
                 <div class="step-description">
-                    <p>本系统使用Supabase作为后端数据库，支持：</p>
+                    <p><strong>🎉 配置已完成：</strong></p>
                     <ul style="margin: 15px 0 15px 20px; color: #7f8c8d;">
-                        <li>✅ 多人同时投票</li>
-                        <li>✅ 每人只能投一次</li>
-                        <li>✅ 实时统计显示</li>
-                        <li>✅ 钉钉分享支持</li>
-                        <li>✅ 数据持久化存储</li>
+                        <li>✅ GitHub: shipeizai-cell/team-lottery</li>
+                        <li>✅ Supabase: flarbbfcedplhrpswscm 项目</li>
+                        <li>✅ 数据库: participants 表已创建</li>
+                        <li>✅ 权限: RLS策略已配置</li>
+                        <li>✅ 链接: https://shipeizai-cell.github.io/team-lottery/</li>
                     </ul>
-                    <p>配置完成后，您将获得一个可直接分享的投票链接。</p>
+                    <p style="background: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 4px solid #4caf50;">
+                        <strong>🎯 系统已就绪！</strong><br>
+                        立即点击下一步获取投票链接，发到钉钉群即可开始投票。
+                    </p>
                 </div>
 
                 <div class="wizard-navigation">
                     <div></div>
-                    <button class="btn" onclick="nextStep(2)">
-                        开始配置 <i class="fas fa-arrow-right"></i>
+                    <button class="btn" onclick="showStep(5)">
+                        获取投票链接 <i class="fas fa-link"></i>
                     </button>
                 </div>
             </div>
@@ -773,47 +776,62 @@
     </div>
 
     <script>
-        // 配置状态管理
+        // 配置状态管理 - 已预配置用户信息
         const config = {
-            supabaseUrl: '',
-            supabaseKey: '',
-            projectId: '',
-            isConfigured: false
+            supabaseUrl: 'https://flarbbfcedplhrpswscm.supabase.co',
+            supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsYXJiYmZjZWRwbGhycHN3c2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDY4MjQsImV4cCI6MjA4OTkyMjgyNH0.6_j-QbOmgfWT5d_7M6cRFNPZo9JVRj1QQkiEZK5sTGY',
+            projectId: 'flarbbfcedplhrpswscm',
+            isConfigured: true,
+            userName: 'shipeizai-cell',
+            githubPagesUrl: 'https://shipeizai-cell.github.io/team-lottery/'
         };
 
-        // 当前步骤
-        let currentStep = 1;
+        // 当前步骤 - 直接跳到最后一步
+        let currentStep = 5;
         const totalSteps = 5;
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
-            // 检查是否已有配置
-            checkExistingConfig();
+            // 显示欢迎信息（已预配置）
+            showNotification('🎉 系统已预配置完成！', '您的投票系统已准备就绪，立即开始投票！', 'success');
             
-            // 更新步骤指示器
-            updateStepIndicator();
+            // 直接跳转到投票界面
+            showStep(5);
+            
+            // 显示投票链接
+            document.getElementById('vote-link').value = config.githubPagesUrl;
+            document.getElementById('config-summary').textContent = 
+                `✅ 系统已预配置完成！\n\n` +
+                `用户: ${config.userName}\n` +
+                `GitHub Pages: ${config.githubPagesUrl}\n` +
+                `Supabase项目: ${config.projectId}\n\n` +
+                `立即复制链接发到钉钉群开始投票！`;
         });
 
         function checkExistingConfig() {
-            const savedConfig = localStorage.getItem('lottery_supabase_config');
-            if (savedConfig) {
-                try {
-                    const parsed = JSON.parse(savedConfig);
-                    config.supabaseUrl = parsed.url;
-                    config.supabaseKey = parsed.key;
-                    config.projectId = parsed.projectId || '';
-                    config.isConfigured = true;
-                    
-                    // 直接跳转到第5步
-                    showStep(5);
-                    document.getElementById('vote-link').value = window.location.href;
-                    document.getElementById('config-summary').textContent = 
-                        `URL: ${config.supabaseUrl}\nKey: ${config.supabaseKey.substring(0, 20)}...`;
-                    
-                } catch (e) {
-                    console.error('配置解析失败:', e);
-                }
-            }
+            // 这是一个预配置的系统，不需要检查localStorage
+            // 配置已在config对象中硬编码
+            config.isConfigured = true;
+            
+            // 也保存到localStorage，方便以后使用
+            const configToSave = {
+                url: config.supabaseUrl,
+                key: config.supabaseKey,
+                projectId: config.projectId,
+                userName: config.userName,
+                githubPagesUrl: config.githubPagesUrl
+            };
+            localStorage.setItem('lottery_supabase_config', JSON.stringify(configToSave));
+            
+            // 直接跳转到第5步
+            showStep(5);
+            document.getElementById('vote-link').value = config.githubPagesUrl;
+            document.getElementById('config-summary').textContent = 
+                `✅ 系统已预配置完成！\n\n` +
+                `用户: ${config.userName}\n` +
+                `GitHub Pages: ${config.githubPagesUrl}\n` +
+                `Supabase项目: ${config.projectId}\n\n` +
+                `立即复制链接发到钉钉群开始投票！`;
         }
 
         function showStep(stepNumber) {
