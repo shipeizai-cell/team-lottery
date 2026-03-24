@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 团建饭店抽签系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #fffaf0 0%, #fff5e6 100%);
+            min-height: 100vh;
+            color: #5a3921;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(255, 152, 0, 0.15);
+            padding: 40px 30px;
+            border: 2px solid rgba(255, 152, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 3px dashed #ff9800;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: #ff6b00;
+            margin-bottom: 15px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #8d6e63;
+        }
+        
+        .emoji-large {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            padding: 30px 20px;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card.home {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border: 3px solid #2196f3;
+        }
+        
+        .stat-card.restaurant {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            border: 3px solid #f44336;
+        }
+        
+        .stat-emoji {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        
+        .stat-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        
+        .stat-count {
+            font-size: 4rem;
+            font-weight: 900;
+            color: #2c3e50;
+            margin: 15px 0;
+        }
+        
+        .stat-percent {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #555;
+        }
+        
+        .lottery-section {
+            background: linear-gradient(to right, #fff8e1, #ffecb3);
+            padding: 40px 30px;
+            border-radius: 20px;
+            border: 3px solid #ffb74d;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .lottery-title {
+            font-size: 2rem;
+            color: #ff6b00;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .lottery-btn {
+            background: linear-gradient(145deg, #ff9800, #ff5722);
+            color: white;
+            border: none;
+            padding: 25px 50px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 15px 40px rgba(255, 87, 34, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .lottery-btn:hover:not(:disabled) {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 60px rgba(255, 87, 34, 0.6);
+        }
+        
+        .lottery-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: linear-gradient(145deg, #bdbdbd, #9e9e9e);
+        }
+        
+        .btn-emoji {
+            font-size: 2.5rem;
+        }
+        
+        .loading {
+            display: none;
+            margin: 20px auto;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #ff9800;
+            border-top: 5px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .result-section {
+            background: linear-gradient(to right, #e8f5e9, #c8e6c9);
+            padding: 40px 30px;
+            border-radius: 20px;
+            border: 3px solid #4caf50;
+            margin-bottom: 40px;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-title {
+            font-size: 1.8rem;
+            color: #4caf50;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .result-content {
+            font-size: 5rem;
+            font-weight: 900;
+            margin: 20px 0;
+            animation: popIn 0.5s ease;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .result-emoji {
+            font-size: 6rem;
+            margin-bottom: 20px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 2px dashed #ff9800;
+            color: #8d6e63;
+        }
+        
+        .participant-count {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+        
+        .count-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #ff6b00;
+        }
+        
+        .error-msg {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+            border: 2px solid #ef9a9a;
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 25px; }
+            .header h1 { font-size: 2.2rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .lottery-btn { padding: 20px 40px; font-size: 1.5rem; }
+            .result-content { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="emoji-large">🎲</div>
+            <h1>周五吃啥？交给天意！</h1>
+            <p>团建饭店随机抽签系统 · 多人在线 · 实时同步</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card home">
+                <div class="stat-emoji">🏠</div>
+                <div class="stat-name">家里蹲</div>
+                <div class="stat-count" id="count-home">0</div>
+                <div class="stat-percent" id="percent-home">0%</div>
+            </div>
+            
+            <div class="stat-card restaurant">
+                <div class="stat-emoji">🍽️</div>
+                <div class="stat-name">歆弘府</div>
+                <div class="stat-count" id="count-restaurant">0</div>
+                <div class="stat-percent" id="percent-restaurant">0%</div>
+            </div>
+        </div>
+        
+        <div class="error-msg" id="error-msg"></div>
+        
+        <div class="lottery-section">
+            <h2 class="lottery-title">🎯 点击抽取你的今日盲盒</h2>
+            <p style="margin-bottom: 30px; color: #666;">每人仅有一次机会，50%概率随机抽取</p>
+            
+            <button class="lottery-btn" id="lottery-btn">
+                <span class="btn-emoji">🎲</span>
+                <span id="btn-text">点击开始抽签</span>
+            </button>
+            
+            <div class="loading" id="loading"></div>
+        </div>
+        
+        <div class="result-section" id="result-section">
+            <h3 class="result-title">🎉 恭喜你抽中了</h3>
+            <div class="result-emoji" id="result-emoji">🏠</div>
+            <div class="result-content" id="result-content">家里蹲</div>
+            <p style="margin-top: 20px; color: #666;">已记录结果，上方统计已实时更新</p>
+        </div>
+        
+        <div class="footer">
+            <div class="participant-count">
+                👥 已参与人数：<span class="count-number" id="total-count">0</span> 人
+            </div>
+            <p>🔗 Supabase实时同步 · 📱 多人在线 · 🎲 50%概率</p>
+        </div>
+    </div>
+
+    <script>
+        // Supabase配置
+        const SUPABASE_URL = 'https://flarbbfcedplhrpswscm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsYXJiYmZjZWRwbGhycHN3c2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDY4MjQsImV4cCI6MjA4OTkyMjgyNH0.6_j-QbOmgfWT5d_7M6cRFNPZo9JVRj1QQkiEZK5sTGY';
+        
+        // DOM元素
+        const lotteryBtn = document.getElementById('lottery-btn');
+        const btnText = document.getElementById('btn-text');
+        const loading = document.getElementById('loading');
+        const resultSection = document.getElementById('result-section');
+        const resultContent = document.getElementById('result-content');
+        const resultEmoji = document.getElementById('result-emoji');
+        const errorMsg = document.getElementById('error-msg');
+        
+        const countHome = document.getElementById('count-home');
+        const percentHome = document.getElementById('percent-home');
+        const countRestaurant = document.getElementById('count-restaurant');
+        const percentRestaurant = document.getElementById('percent-restaurant');
+        const totalCount = document.getElementById('total-count');
+        
+        // 用户状态
+        let userParticipated = localStorage.getItem('lottery_participated') === 'true';
+        let userResult = localStorage.getItem('lottery_result');
+        
+        // 初始化
+        async function init() {
+            if (userParticipated) {
+                lotteryBtn.disabled = true;
+                btnText.textContent = '已抽签';
+                showResult(userResult);
+            }
+            await loadStats();
+            setInterval(loadStats, 3000);
+        }
+        
+        // 加载统计
+        async function loadStats() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/option_counts?select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY }
+                });
+                
+                if (!res.ok) throw new Error('加载失败');
+                
+                const data = await res.json();
+                let home = 0, restaurant = 0;
+                
+                data.forEach(item => {
+                    if (item.option_name === '家里蹲') home = item.count;
+                    else if (item.option_name === '歆弘府') restaurant = item.count;
+                });
+                
+                const total = home + restaurant;
+                
+                countHome.textContent = home;
+                countRestaurant.textContent = restaurant;
+                totalCount.textContent = total;
+                
+                if (total > 0) {
+                    percentHome.textContent = Math.round(home / total * 100) + '%';
+                    percentRestaurant.textContent = Math.round(restaurant / total * 100) + '%';
+                }
+                
+                hideError();
+            } catch (err) {
+                console.error('加载统计失败:', err);
+            }
+        }
+        
+        // 抽签
+        async function doLottery() {
+            if (userParticipated) {
+                showError('您已经抽过签了！');
+                return;
+            }
+            
+            lotteryBtn.disabled = true;
+            btnText.textContent = '抽签中...';
+            loading.style.display = 'block';
+            
+            try {
+                // 随机选择
+                const isHome = Math.random() < 0.5;
+                const selected = isHome ? '家里蹲' : '歆弘府';
+                const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                // 插入记录
+                const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/lottery_records`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        selected_option: selected,
+                        user_agent: navigator.userAgent
+                    })
+                });
+                
+                if (insertRes.status === 409) {
+                    showError('您已经抽过签了！');
+                    return;
+                }
+                
+                if (!insertRes.ok) throw new Error('插入失败');
+                
+                // 更新计数 - 先获取当前值，然后+1
+                const countResponse = await fetch(`${SUPABASE_URL}/rest/v1/option_counts?option_name=eq.${selected}`, {
+                    headers: { 'apikey': SUPABASE_KEY }
+                });
+                
+                if (countResponse.ok) {
+                    const countData = await countResponse.json();
+                    const currentCount = countData[0]?.count || 0;
+                    
+                    await fetch(`${SUPABASE_URL}/rest/v1/option_counts?option_name=eq.${selected}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ count: currentCount + 1 })
+                    });
+                }
+                
+                // 保存状态
+                userParticipated = true;
+                userResult = selected;
+                localStorage.setItem('lottery_participated', 'true');
+                localStorage.setItem('lottery_result', selected);
+                
+                showResult(selected);
+                loadStats();
+                
+            } catch (err) {
+                console.error('抽签失败:', err);
+                showError('抽签失败，请刷新重试');
+                lotteryBtn.disabled = false;
+                btnText.textContent = '点击开始抽签';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        function showResult(result) {
+            resultContent.textContent = result;
+            resultEmoji.textContent = result === '家里蹲' ? '🏠' : '🍽️';
+            resultContent.style.color = result === '家里蹲' ? '#2196f3' : '#f44336';
+            resultSection.style.display = 'block';
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+            
+            // 庆祝动画
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const el = document.createElement('div');
+                    el.textContent = ['🎉', '✨', '🥳'][Math.floor(Math.random() * 3)];
+                    el.style.cssText = 'position:fixed;left:' + Math.random() * 100 + '%;top:' + Math.random() * 100 + '%;font-size:30px;pointer-events:none;z-index:9999;transition:all 1s';
+                    document.body.appendChild(el);
+                    setTimeout(() => { el.style.transform = 'translateY(-100px)'; el.style.opacity = '0'; }, 100);
+                    setTimeout(() => el.remove(), 1100);
+                }, i * 100);
+            }
+        }
+        
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+        }
+        
+        function hideError() {
+            errorMsg.style.display = 'none';
+        }
+        
+        lotteryBtn.addEventListener('click', doLottery);
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
