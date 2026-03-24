@@ -3,1126 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>团建饭店抽奖系统（生产自动配置版）</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>团建饭店抽签系统</title>
+    <meta name="description" content="团建饭店随机抽签系统，温暖美食风格，多人在线同步">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-        }
-
-        .github-pages-tip {
-            background: linear-gradient(135deg, #6e45e2, #88d3ce);
-            color: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 30px;
-            text-align: left;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-        }
-
-        .github-pages-tip h3 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-        }
-
-        .github-pages-tip p {
-            margin: 5px 0;
-            line-height: 1.5;
-        }
-
-        .github-pages-tip code {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: monospace;
-        }
-
-        .github-link {
-            display: inline-block;
-            background: white;
-            color: #24292e;
-            padding: 8px 16px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .github-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
-            text-decoration: none;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            font-family: -apple-system, sans-serif;
+            background: linear-gradient(135deg, #fffaf0 0%, #ffecb3 100%);
+            color: #333;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
         }
-
         .container {
-            background-color: rgba(255, 255, 255, 0.98);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-            padding: 40px;
+            max-width: 500px;
             width: 100%;
-            max-width: 1000px;
             text-align: center;
         }
-
-        .header {
+        .logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        h1 {
+            font-size: 36px;
+            color: #ff9800;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .subtitle {
+            color: #ffb74d;
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(255, 152, 0, 0.15);
+            border: 2px solid #ffd54f;
             margin-bottom: 30px;
         }
-
-        .header h1 {
-            color: #2c3e50;
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            background: linear-gradient(90deg, #1a2980, #26d0ce);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        /* 配置向导界面 */
-        .setup-wizard {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
-            margin: 30px 0;
-            text-align: left;
-        }
-
-        .wizard-step {
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .wizard-step.active {
-            display: block;
-        }
-
-        .step-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .card h2 {
+            color: #ff9800;
             margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e9ecef;
+            font-size: 24px;
         }
-
-        .step-number {
-            background: #1a2980;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+        .option {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: bold;
+            justify-content: space-between;
+            padding: 15px;
+            background: #fff8e1;
+            border-radius: 12px;
+            margin: 10px 0;
+            border: 1px solid #ffecb3;
         }
-
-        .step-title {
-            font-size: 1.5rem;
-            color: #2c3e50;
-            font-weight: bold;
+        .option-emoji {
+            font-size: 30px;
         }
-
-        .step-description {
-            color: #7f8c8d;
-            margin-bottom: 20px;
-            line-height: 1.6;
+        .option-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ff9800;
         }
-
-        .form-group {
-            margin-bottom: 20px;
+        .option-desc {
+            color: #666;
+            font-size: 14px;
         }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            color: #2c3e50;
-            font-weight: 500;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-family: monospace;
-        }
-
-        .form-input:focus {
-            border-color: #1a2980;
-            box-shadow: 0 0 0 3px rgba(26, 41, 128, 0.1);
-            outline: none;
-        }
-
-        .form-input.error {
-            border-color: #e74c3c;
-        }
-
-        .form-hint {
-            margin-top: 8px;
-            color: #7f8c8d;
-            font-size: 0.9rem;
-            line-height: 1.4;
-        }
-
-        .form-hint a {
-            color: #1a2980;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .form-hint a:hover {
-            text-decoration: underline;
-        }
-
-        .btn {
-            background: linear-gradient(90deg, #1a2980, #26d0ce);
+        .start-btn {
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
             color: white;
             border: none;
-            padding: 14px 28px;
-            font-size: 1.1rem;
-            border-radius: 8px;
+            padding: 20px 40px;
+            font-size: 22px;
+            font-weight: 600;
+            border-radius: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
+            transition: all 0.3s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-        }
-
-        .btn:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(26, 41, 128, 0.2);
-        }
-
-        .btn:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-        }
-
-        .btn-success {
-            background: #2ecc71;
-        }
-
-        .wizard-navigation {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .step-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #ddd;
-            transition: all 0.3s ease;
-        }
-
-        .step-dot.active {
-            background: #1a2980;
-            transform: scale(1.2);
-        }
-
-        .status-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            border-left: 5px solid #3498db;
-            display: flex;
-            align-items: center;
             gap: 15px;
+            box-shadow: 0 12px 32px rgba(255, 152, 0, 0.3);
+            margin: 30px 0;
+            width: 100%;
         }
-
-        .status-card.success {
-            border-left-color: #2ecc71;
-            background: #f0fff4;
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 40px rgba(255, 152, 0, 0.4);
         }
-
-        .status-card.error {
-            border-left-color: #e74c3c;
-            background: #fff5f5;
+        .btn-emoji {
+            font-size: 28px;
         }
-
-        .status-card.warning {
-            border-left-color: #f1c40f;
-            background: #fff9e6;
-        }
-
-        .status-icon {
-            font-size: 2rem;
-        }
-
-        .status-card.success .status-icon {
-            color: #2ecc71;
-        }
-
-        .status-card.error .status-icon {
-            color: #e74c3c;
-        }
-
-        .status-card.warning .status-icon {
-            color: #f1c40f;
-        }
-
-        .status-content h4 {
-            margin-bottom: 5px;
-            color: #2c3e50;
-        }
-
-        .status-content p {
-            color: #7f8c8d;
-            margin: 0;
-        }
-
-        .code-block {
-            background: #2c3e50;
-            color: #ecf0f1;
-            border-radius: 8px;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            margin: 15px 0;
-            overflow-x: auto;
+        .rules {
             text-align: left;
+            margin-top: 20px;
+            color: #666;
         }
-
-        .code-block .comment {
-            color: #7f8c8d;
+        .rules li {
+            margin: 8px 0;
+            padding-left: 10px;
         }
-
-        .code-block .keyword {
-            color: #3498db;
+        .rules li::marker {
+            color: #ff9800;
         }
-
-        .code-block .string {
-            color: #2ecc71;
+        .footer {
+            color: #888;
+            font-size: 14px;
+            margin-top: 30px;
         }
-
-        /* 主界面样式 */
-        .main-interface {
-            display: none;
+        .version {
+            background: #ffecb3;
+            color: #ff9800;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+            margin-bottom: 10px;
         }
-
-        .main-interface.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .spinning {
-            animation: spin 1s linear infinite;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            border-radius: 10px;
-            padding: 15px 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            border-left: 5px solid #2ecc71;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-            max-width: 350px;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.error {
-            border-left-color: #e74c3c;
-        }
-
-        .notification.warning {
-            border-left-color: #f1c40f;
-        }
-
-        .notification i {
-            font-size: 1.5rem;
-        }
-
-        .notification.success i {
-            color: #2ecc71;
-        }
-
-        .notification.error i {
-            color: #e74c3c;
-        }
-
-        .notification.warning i {
-            color: #f1c40f;
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            display: none;
-        }
-
-        .loading-overlay.active {
-            display: flex;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #1a2980;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        .loading-text {
-            color: #2c3e50;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        .loading-details {
-            color: #7f8c8d;
-            margin-top: 10px;
-            text-align: center;
-            max-width: 400px;
+        @media (max-width: 480px) {
+            .container { padding: 10px; }
+            .logo { font-size: 48px; }
+            h1 { font-size: 28px; }
+            .subtitle { font-size: 16px; }
+            .card { padding: 30px 20px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-users"></i> 团建饭店抽奖系统</h1>
-            <p style="color: #7f8c8d; font-size: 1.2rem;">生产环境自动配置版</p>
+        <div class="logo">🎲🍽️🏠</div>
+        <h1>团建饭店抽签系统</h1>
+        <p class="subtitle">温暖美食风格 · 公平随机抽取 · 多人在线同步</p>
+        
+        <div class="card">
+            <h2>🎯 抽签选项</h2>
+            
+            <div class="option">
+                <div class="option-emoji">🏠</div>
+                <div style="flex: 1; text-align: left; margin-left: 15px;">
+                    <div class="option-name">家里蹲</div>
+                    <div class="option-desc">温馨舒适，省钱省事</div>
+                </div>
+            </div>
+            
+            <div class="option">
+                <div class="option-emoji">🍽️</div>
+                <div style="flex: 1; text-align: left; margin-left: 15px;">
+                    <div class="option-name">歆弘府</div>
+                    <div class="option-desc">豪华餐厅，美食盛宴</div>
+                </div>
+            </div>
+            
+            <div class="rules">
+                <h3 style="color: #ff9800; margin: 20px 0 15px;">📋 抽签规则</h3>
+                <ul>
+                    <li>✅ <strong>公平随机</strong> - 50%概率随机抽取</li>
+                    <li>✅ <strong>每人仅一次</strong> - 公平公正，防止重复</li>
+                    <li>✅ <strong>多人在线同步</strong> - 实时统计更新</li>
+                    <li>✅ <strong>温暖美食风格</strong> - 舒适界面体验</li>
+                    <li>✅ <strong>手机电脑通用</strong> - 全平台支持</li>
+                </ul>
+            </div>
+            
+            <button class="start-btn" onclick="startLottery()">
+                <span class="btn-emoji">🚀</span>
+                <span>立即开始抽签</span>
+            </button>
         </div>
-
-        <!-- 配置向导 -->
-        <div class="setup-wizard" id="setup-wizard">
-            <!-- 步骤1: 欢迎 -->
-            <div class="wizard-step active" id="step-1">
-                <div class="step-header">
-                    <div class="step-number">1</div>
-                    <div class="step-title">欢迎使用配置向导</div>
-                </div>
-                
-                <div class="status-card success">
-                    <i class="fas fa-check-circle status-icon"></i>
-                    <div class="status-content">
-                        <h4>✅ 系统已预配置完成！</h4>
-                        <p>您的投票系统已准备就绪，所有配置已完成</p>
-                    </div>
-                </div>
-
-                <div class="step-description">
-                    <p><strong>🎉 配置已完成：</strong></p>
-                    <ul style="margin: 15px 0 15px 20px; color: #7f8c8d;">
-                        <li>✅ GitHub: shipeizai-cell/team-lottery</li>
-                        <li>✅ Supabase: flarbbfcedplhrpswscm 项目</li>
-                        <li>✅ 数据库: participants 表已创建</li>
-                        <li>✅ 权限: RLS策略已配置</li>
-                        <li>✅ 链接: https://shipeizai-cell.github.io/team-lottery/</li>
-                    </ul>
-                    <p style="background: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 4px solid #4caf50;">
-                        <strong>🎯 系统已就绪！</strong><br>
-                        立即点击下一步获取投票链接，发到钉钉群即可开始投票。
-                    </p>
-                </div>
-
-                <div class="wizard-navigation">
-                    <div></div>
-                    <button class="btn" onclick="showStep(5)">
-                        获取投票链接 <i class="fas fa-link"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 步骤2: 创建Supabase项目 -->
-            <div class="wizard-step" id="step-2">
-                <div class="step-header">
-                    <div class="step-number">2</div>
-                    <div class="step-title">创建Supabase项目</div>
-                </div>
-
-                <div class="step-description">
-                    <p>Supabase是一个免费的PostgreSQL数据库服务。请按以下步骤操作：</p>
-                </div>
-
-                <div class="status-card">
-                    <i class="fas fa-list-ol status-icon"></i>
-                    <div class="status-content">
-                        <h4>操作步骤</h4>
-                        <p>请在新标签页中完成这些操作</p>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="form-label">步骤1: 访问Supabase</div>
-                    <a href="https://supabase.com" target="_blank" class="btn" style="margin-bottom: 15px;">
-                        <i class="fas fa-external-link-alt"></i> 打开Supabase网站
-                    </a>
-                    <div class="form-hint">
-                        点击上方按钮在新窗口打开Supabase，然后继续下面的步骤
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="form-label">步骤2: 注册并创建项目</div>
-                    <ol style="margin: 10px 0 10px 20px; color: #7f8c8d;">
-                        <li>点击 "Start your project"</li>
-                        <li>使用GitHub或邮箱注册</li>
-                        <li>创建新组织（输入组织名称）</li>
-                        <li>创建新项目：
-                            <ul style="margin-left: 20px; margin-top: 5px;">
-                                <li><strong>Name</strong>: team-lottery-system</li>
-                                <li><strong>Database Password</strong>: 设置强密码（记住它！）</li>
-                                <li><strong>Region</strong>: 选择 Asia Southeast (Singapore)</li>
-                                <li><strong>Pricing Plan</strong>: 选择 Free Plan</li>
-                            </ul>
-                        </li>
-                        <li>点击 "Create new project"（等待1-2分钟）</li>
-                    </ol>
-                </div>
-
-                <div class="wizard-navigation">
-                    <button class="btn btn-secondary" onclick="prevStep(1)">
-                        <i class="fas fa-arrow-left"></i> 上一步
-                    </button>
-                    <button class="btn" onclick="nextStep(3)">
-                        已完成，继续 <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 步骤3: 获取API凭证 -->
-            <div class="wizard-step" id="step-3">
-                <div class="step-header">
-                    <div class="step-number">3</div>
-                    <div class="step-title">获取API凭证</div>
-                </div>
-
-                <div class="step-description">
-                    <p>现在需要获取Supabase项目的连接信息：</p>
-                </div>
-
-                <div class="form-group">
-                    <div class="form-label">在Supabase中操作</div>
-                    <ol style="margin: 10px 0 10px 20px; color: #7f8c8d;">
-                        <li>项目创建完成后，进入项目仪表板</li>
-                        <li>点击左侧菜单 <strong>Settings</strong> → <strong>API</strong></li>
-                        <li>找到以下信息并填写到下方：</li>
-                    </ol>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="project-url">Project URL *</label>
-                    <input type="text" id="project-url" class="form-input" 
-                           placeholder="https://xxxxxxxxxxxx.supabase.co">
-                    <div class="form-hint">
-                        以 https:// 开头，结尾是 .supabase.co
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="anon-key">Anon (public) Key *</label>
-                    <input type="text" id="anon-key" class="form-input" 
-                           placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-                    <div class="form-hint">
-                        以 eyJ 开头的长字符串，在 "Project API keys" 部分
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="project-id">Project ID（可选）</label>
-                    <input type="text" id="project-id" class="form-input" 
-                           placeholder="xxxxxxxxxxxxxx">
-                    <div class="form-hint">
-                        可以在URL中找到，或在 "General settings" 中查看
-                    </div>
-                </div>
-
-                <div class="status-card warning">
-                    <i class="fas fa-exclamation-triangle status-icon"></i>
-                    <div class="status-content">
-                        <h4>重要提示</h4>
-                        <p>请妥善保存这些凭证，不要分享给他人</p>
-                    </div>
-                </div>
-
-                <div class="wizard-navigation">
-                    <button class="btn btn-secondary" onclick="prevStep(2)">
-                        <i class="fas fa-arrow-left"></i> 上一步
-                    </button>
-                    <button class="btn" onclick="testConnection()">
-                        测试连接 <i class="fas fa-plug"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 步骤4: 数据库设置 -->
-            <div class="wizard-step" id="step-4">
-                <div class="step-header">
-                    <div class="step-number">4</div>
-                    <div class="step-title">自动配置数据库</div>
-                </div>
-
-                <div class="step-description">
-                    <p>系统将自动创建数据库表和安全策略：</p>
-                </div>
-
-                <div class="code-block">
-<span class="comment">-- 创建参与者表</span><br>
-<span class="keyword">CREATE TABLE</span> participants (<br>
-&nbsp;&nbsp;id BIGSERIAL <span class="keyword">PRIMARY KEY</span>,<br>
-&nbsp;&nbsp;user_id TEXT <span class="keyword">UNIQUE NOT NULL</span>,<br>
-&nbsp;&nbsp;user_name TEXT <span class="keyword">NOT NULL</span>,<br>
-&nbsp;&nbsp;choice TEXT <span class="keyword">NOT NULL</span>,<br>
-&nbsp;&nbsp;user_ip TEXT,<br>
-&nbsp;&nbsp;user_agent TEXT,<br>
-&nbsp;&nbsp;created_at TIMESTAMP <span class="keyword">DEFAULT</span> NOW()<br>
-);<br>
-<br>
-<span class="comment">-- 启用安全策略</span><br>
-<span class="keyword">ALTER TABLE</span> participants <span class="keyword">ENABLE ROW LEVEL SECURITY</span>;<br>
-<br>
-<span class="comment">-- 允许所有人插入和读取</span><br>
-<span class="keyword">CREATE POLICY</span> <span class="string">"allow_insert"</span> <span class="keyword">ON</span> participants<br>
-<span class="keyword">FOR INSERT WITH CHECK</span> (<span class="keyword">true</span>);<br>
-<br>
-<span class="keyword">CREATE POLICY</span> <span class="string">"allow_select"</span> <span class="keyword">ON</span> participants<br>
-<span class="keyword">FOR SELECT USING</span> (<span class="keyword">true</span>);
-                </div>
-
-                <div class="status-card" id="db-setup-status">
-                    <i class="fas fa-cog status-icon spinning"></i>
-                    <div class="status-content">
-                        <h4>准备配置数据库</h4>
-                        <p>点击下方按钮开始自动配置</p>
-                    </div>
-                </div>
-
-                <div class="wizard-navigation">
-                    <button class="btn btn-secondary" onclick="prevStep(3)">
-                        <i class="fas fa-arrow-left"></i> 上一步
-                    </button>
-                    <button class="btn btn-success" onclick="setupDatabase()">
-                        <i class="fas fa-database"></i> 配置数据库
-                    </button>
-                </div>
-            </div>
-
-            <!-- 步骤5: 完成配置 -->
-            <div class="wizard-step" id="step-5">
-                <div class="step-header">
-                    <div class="step-number">5</div>
-                    <div class="step-title">配置完成！</div>
-                </div>
-
-                <div class="status-card success">
-                    <i class="fas fa-check-circle status-icon"></i>
-                    <div class="status-content">
-                        <h4>恭喜！系统已配置完成</h4>
-                        <p>Supabase数据库已成功设置并连接</p>
-                    </div>
-                </div>
-
-                <div class="step-description">
-                    <p>您的投票系统现在已准备就绪：</p>
-                    <ul style="margin: 15px 0 15px 20px; color: #7f8c8d;">
-                        <li>✅ 数据库连接正常</li>
-                        <li>✅ 表结构已创建</li>
-                        <li>✅ 安全策略已配置</li>
-                        <li>✅ 系统可以开始使用</li>
-                    </ul>
-
-                    <div class="form-group">
-                        <div class="form-label">您的投票链接</div>
-                        <input type="text" id="vote-link" class="form-input" readonly 
-                               value="生成中...">
-                        <div class="form-hint">
-                            复制此链接分享到钉钉群，同事们点击即可投票
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="form-label">配置信息已保存</div>
-                        <div class="code-block" style="font-size: 0.8rem; max-height: 100px; overflow-y: auto;" id="config-summary">
-                            // 配置已加密保存到浏览器本地存储
-                        </div>
-                        <div class="form-hint">
-                            下次打开页面时会自动加载配置，无需重复设置
-                        </div>
-                    </div>
-                </div>
-
-                <div class="wizard-navigation">
-                    <button class="btn btn-secondary" onclick="prevStep(4)">
-                        <i class="fas fa-arrow-left"></i> 上一步
-                    </button>
-                    <button class="btn btn-success" onclick="startVotingSystem()">
-                        <i class="fas fa-play"></i> 启动投票系统
-                    </button>
-                </div>
-            </div>
-
-            <!-- 步骤指示器 -->
-            <div class="step-indicator">
-                <div class="step-dot active" data-step="1"></div>
-                <div class="step-dot" data-step="2"></div>
-                <div class="step-dot" data-step="3"></div>
-                <div class="step-dot" data-step="4"></div>
-                <div class="step-dot" data-step="5"></div>
-            </div>
-        </div>
-
-        <!-- 主投票界面（配置完成后显示） -->
-        <div class="main-interface" id="main-interface">
-            <!-- 这里将动态加载投票系统 -->
-            <div id="voting-system-container">
-                <div style="text-align: center; padding: 50px;">
-                    <div class="spinner"></div>
-                    <p style="margin-top: 20px; color: #7f8c8d;">正在加载投票系统...</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="github-pages-tip">
-            <h3><i class="fab fa-github"></i> 分享给同事（GitHub Pages）</h3>
-            <p><strong>步骤1：</strong> 将本文件夹上传到GitHub仓库</p>
-            <p><strong>步骤2：</strong> 启用GitHub Pages获取链接：<code>https://你的用户名.github.io/仓库名/</code></p>
-            <p><strong>步骤3：</strong> 将链接发到钉钉群，同事点击即可投票！</p>
-            <a href="https://github.com" target="_blank" class="github-link">
-                <i class="fab fa-github"></i> 前往GitHub
-            </a>
-        </div>
-
-        <div class="footer" style="margin-top: 40px; color: #7f8c8d; font-size: 0.9rem;">
-            <p>© 2025 团建投票系统 | 版本: 生产自动配置版 v1.0 | 支持GitHub Pages分享</p>
-        </div>
-    </div>
-
-    <!-- 加载遮罩 -->
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="spinner"></div>
-        <div class="loading-text" id="loading-text">正在处理...</div>
-        <div class="loading-details" id="loading-details">请稍候</div>
-    </div>
-
-    <!-- 通知 -->
-    <div class="notification" id="notification">
-        <i class="fas fa-check-circle"></i>
-        <div>
-            <strong id="notification-title">通知</strong>
-            <div id="notification-message">消息内容</div>
+        
+        <div class="version">最终版 - 无需登录注册</div>
+        <div class="footer">
+            <p>🔗 多人在线同步 · 📱 手机电脑通用 · 🎲 50%概率公平</p>
         </div>
     </div>
 
     <script>
-        // 配置状态管理 - 已预配置用户信息
-        const config = {
-            supabaseUrl: 'https://flarbbfcedplhrpswscm.supabase.co',
-            supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsYXJiYmZjZWRwbGhycHN3c2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDY4MjQsImV4cCI6MjA4OTkyMjgyNH0.6_j-QbOmgfWT5d_7M6cRFNPZo9JVRj1QQkiEZK5sTGY',
-            projectId: 'flarbbfcedplhrpswscm',
-            isConfigured: true,
-            userName: 'shipeizai-cell',
-            githubPagesUrl: 'https://shipeizai-cell.github.io/team-lottery/'
-        };
-
-        // 当前步骤 - 直接跳到最后一步
-        let currentStep = 5;
-        const totalSteps = 5;
-
-        // 初始化
+        function startLottery() {
+            // 检查是否已参与
+            const userId = localStorage.getItem('lottery_user_id');
+            const participated = localStorage.getItem('lottery_participated_' + userId);
+            
+            if (participated === 'true') {
+                // 如果已参与，直接跳转到抽签页面
+                window.location.href = 'lottery-public.html';
+            } else {
+                // 首次参与，跳转到抽签页面
+                window.location.href = 'lottery-public.html';
+            }
+        }
+        
+        // 页面加载时检查统计状态
         document.addEventListener('DOMContentLoaded', function() {
-            // 显示欢迎信息（已预配置）
-            showNotification('🎉 系统已预配置完成！', '您的投票系统已准备就绪，立即开始投票！', 'success');
-            
-            // 直接跳转到投票界面
-            showStep(5);
-            
-            // 显示投票链接
-            document.getElementById('vote-link').value = config.githubPagesUrl;
-            document.getElementById('config-summary').textContent = 
-                `✅ 系统已预配置完成！\n\n` +
-                `用户: ${config.userName}\n` +
-                `GitHub Pages: ${config.githubPagesUrl}\n` +
-                `Supabase项目: ${config.projectId}\n\n` +
-                `立即复制链接发到钉钉群开始投票！`;
+            // 预加载统计，优化体验
+            const savedStats = localStorage.getItem('lottery_global_stats');
+            if (!savedStats) {
+                // 初始化统计数据
+                localStorage.setItem('lottery_global_stats', JSON.stringify({ home: 0, restaurant: 0 }));
+            }
         });
-
-        function checkExistingConfig() {
-            // 这是一个预配置的系统，不需要检查localStorage
-            // 配置已在config对象中硬编码
-            config.isConfigured = true;
-            
-            // 也保存到localStorage，方便以后使用
-            const configToSave = {
-                url: config.supabaseUrl,
-                key: config.supabaseKey,
-                projectId: config.projectId,
-                userName: config.userName,
-                githubPagesUrl: config.githubPagesUrl
-            };
-            localStorage.setItem('lottery_supabase_config', JSON.stringify(configToSave));
-            
-            // 直接跳转到第5步
-            showStep(5);
-            document.getElementById('vote-link').value = config.githubPagesUrl;
-            document.getElementById('config-summary').textContent = 
-                `✅ 系统已预配置完成！\n\n` +
-                `用户: ${config.userName}\n` +
-                `GitHub Pages: ${config.githubPagesUrl}\n` +
-                `Supabase项目: ${config.projectId}\n\n` +
-                `立即复制链接发到钉钉群开始投票！`;
-        }
-
-        function showStep(stepNumber) {
-            // 隐藏所有步骤
-            document.querySelectorAll('.wizard-step').forEach(step => {
-                step.classList.remove('active');
-            });
-            
-            // 显示目标步骤
-            const stepElement = document.getElementById(`step-${stepNumber}`);
-            if (stepElement) {
-                stepElement.classList.add('active');
-            }
-            
-            currentStep = stepNumber;
-            updateStepIndicator();
-        }
-
-        function nextStep(stepNumber) {
-            if (stepNumber === 3) {
-                // 验证步骤2是否完成
-                if (!validateStep2()) {
-                    showNotification('请先完成Supabase项目创建', '请在浏览器新标签页中完成项目创建', 'warning');
-                    return;
-                }
-            }
-            
-            showStep(stepNumber);
-        }
-
-        function prevStep(stepNumber) {
-            showStep(stepNumber);
-        }
-
-        function updateStepIndicator() {
-            document.querySelectorAll('.step-dot').forEach((dot, index) => {
-                if (index + 1 <= currentStep) {
-                    dot.classList.add('active');
-                } else {
-                    dot.classList.remove('active');
-                }
-            });
-        }
-
-        function validateStep2() {
-            // 这里可以添加更复杂的验证逻辑
-            return true;
-        }
-
-        function testConnection() {
-            const url = document.getElementById('project-url').value.trim();
-            const key = document.getElementById('anon-key').value.trim();
-            const projectId = document.getElementById('project-id').value.trim();
-
-            if (!url || !key) {
-                showNotification('请输入完整信息', '请填写Project URL和Anon Key', 'error');
-                return;
-            }
-
-            if (!url.startsWith('https://') || !url.includes('.supabase.co')) {
-                showNotification('URL格式错误', 'Project URL必须以https://开头且包含.supabase.co', 'error');
-                return;
-            }
-
-            // 保存配置
-            config.supabaseUrl = url;
-            config.supabaseKey = key;
-            config.projectId = projectId;
-
-            // 显示加载
-            showLoading('正在测试Supabase连接...', '请稍候，这可能需要几秒钟');
-
-            // 测试连接
-            setTimeout(() => {
-                // 模拟连接测试（实际应该调用Supabase API）
-                hideLoading();
-                
-                // 假设连接成功
-                config.isConfigured = true;
-                
-                // 保存配置
-                const configToSave = {
-                    url: config.supabaseUrl,
-                    key: config.supabaseKey,
-                    projectId: config.projectId,
-                    configuredAt: new Date().toISOString()
-                };
-                localStorage.setItem('lottery_supabase_config', JSON.stringify(configToSave));
-                
-                showNotification('连接成功', 'Supabase数据库连接测试通过', 'success');
-                nextStep(4);
-            }, 2000);
-        }
-
-        function setupDatabase() {
-            showLoading('正在配置数据库...', '创建表结构、设置权限和安全策略');
-            
-            // 更新状态显示
-            const statusCard = document.getElementById('db-setup-status');
-            statusCard.innerHTML = `
-                <i class="fas fa-cog status-icon spinning"></i>
-                <div class="status-content">
-                    <h4>正在配置数据库</h4>
-                    <p>请稍候，这可能需要几秒钟...</p>
-                </div>
-            `;
-
-            // 模拟数据库配置
-            setTimeout(() => {
-                hideLoading();
-                
-                statusCard.className = 'status-card success';
-                statusCard.innerHTML = `
-                    <i class="fas fa-check-circle status-icon"></i>
-                    <div class="status-content">
-                        <h4>数据库配置完成</h4>
-                        <p>表结构、索引和安全策略已成功创建</p>
-                    </div>
-                `;
-
-                showNotification('数据库配置完成', '所有数据库对象已成功创建', 'success');
-                nextStep(5);
-                
-                // 更新投票链接
-                document.getElementById('vote-link').value = window.location.href;
-                document.getElementById('config-summary').textContent = 
-                    `项目URL: ${config.supabaseUrl}\n` +
-                    `API Key: ${config.supabaseKey.substring(0, 25)}...\n` +
-                    `配置时间: ${new Date().toLocaleString()}`;
-            }, 3000);
-        }
-
-        function startVotingSystem() {
-            // 隐藏配置向导
-            document.getElementById('setup-wizard').style.display = 'none';
-            
-            // 显示主界面
-            document.getElementById('main-interface').classList.add('active');
-            
-            // 加载投票系统
-            loadVotingSystem();
-        }
-
-        function loadVotingSystem() {
-            showLoading('正在加载投票系统...', '初始化组件和连接数据库');
-            
-            // 这里应该动态加载投票系统组件
-            setTimeout(() => {
-                hideLoading();
-                
-                // 创建简化的投票界面
-                const container = document.getElementById('voting-system-container');
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <div class="status-card success" style="max-width: 500px; margin: 0 auto 30px;">
-                            <i class="fas fa-check-circle status-icon"></i>
-                            <div class="status-content">
-                                <h4>投票系统已就绪</h4>
-                                <p>系统配置完成，可以开始投票</p>
-                            </div>
-                        </div>
-                        
-                        <h2 style="color: #2c3e50; margin-bottom: 30px;">
-                            <i class="fas fa-vote-yea"></i> 团建饭店投票
-                        </h2>
-                        
-                        <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 40px;">
-                            <div style="background: white; border-radius: 15px; padding: 25px; width: 300px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
-                                <div style="color: #3498db; font-size: 3rem; margin-bottom: 15px;">
-                                    <i class="fas fa-home"></i>
-                                </div>
-                                <div style="font-size: 2rem; font-weight: bold; color: #2c3e50; margin-bottom: 10px;">
-                                    家里蹲
-                                </div>
-                                <div style="font-size: 3rem; font-weight: bold; color: #1a2980; margin: 10px 0;">
-                                    0
-                                </div>
-                                <div style="color: #7f8c8d;">
-                                    0%
-                                </div>
-                            </div>
-                            
-                            <div style="background: white; border-radius: 15px; padding: 25px; width: 300px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
-                                <div style="color: #e74c3c; font-size: 3rem; margin-bottom: 15px;">
-                                    <i class="fas fa-utensils"></i>
-                                </div>
-                                <div style="font-size: 2rem; font-weight: bold; color: #2c3e50; margin-bottom: 10px;">
-                                    歆弘府
-                                </div>
-                                <div style="font-size: 3rem; font-weight: bold; color: #1a2980; margin: 10px 0;">
-                                    0
-                                </div>
-                                <div style="color: #7f8c8d;">
-                                    0%
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <button id="start-vote-btn" style="
-                            background: linear-gradient(90deg, #1a2980, #26d0ce);
-                            color: white;
-                            border: none;
-                            padding: 18px 45px;
-                            font-size: 1.4rem;
-                            border-radius: 50px;
-                            cursor: pointer;
-                            font-weight: bold;
-                            display: inline-flex;
-                            align-items: center;
-                            gap: 12px;
-                            margin-bottom: 30px;
-                        ">
-                            <i class="fas fa-random"></i> 开始投票
-                        </button>
-                        
-                        <div style="margin-top: 30px; color: #7f8c8d;">
-                            <p><i class="fas fa-info-circle"></i> 系统已连接到Supabase数据库</p>
-                            <p>每人只能投票一次，投票结果实时统计</p>
-                        </div>
-                        
-                        <div style="margin-top: 40px;">
-                            <h3 style="color: #2c3e50; margin-bottom: 15px;">
-                                <i class="fas fa-share-alt"></i> 分享到钉钉
-                            </h3>
-                            <input type="text" value="${window.location.href}" readonly style="
-                                width: 100%;
-                                max-width: 500px;
-                                padding: 10px;
-                                border: 1px solid #ddd;
-                                border-radius: 6px;
-                                font-family: monospace;
-                                margin-bottom: 10px;
-                            ">
-                            <p style="color: #7f8c8d; font-size: 0.9rem;">
-                                复制此链接发送到钉钉群，同事们点击即可参与投票
-                            </p>
-                        </div>
-                    </div>
-                `;
-                
-                // 添加投票按钮事件
-                document.getElementById('start-vote-btn').addEventListener('click', function() {
-                    this.innerHTML = '<i class="fas fa-spinner spinning"></i> 投票中...';
-                    this.disabled = true;
-                    
-                    setTimeout(() => {
-                        showNotification('投票成功', '您选择了：家里蹲（模拟）', 'success');
-                        this.innerHTML = '<i class="fas fa-check-circle"></i> 已投票';
-                    }, 1500);
-                });
-            }, 2000);
-        }
-
-        // 工具函数
-        function showLoading(title, details) {
-            document.getElementById('loading-text').textContent = title;
-            document.getElementById('loading-details').textContent = details;
-            document.getElementById('loading-overlay').classList.add('active');
-        }
-
-        function hideLoading() {
-            document.getElementById('loading-overlay').classList.remove('active');
-        }
-
-        function showNotification(title, message, type = 'success') {
-            const notification = document.getElementById('notification');
-            const titleEl = document.getElementById('notification-title');
-            const messageEl = document.getElementById('notification-message');
-            const icon = notification.querySelector('i');
-            
-            titleEl.textContent = title;
-            messageEl.textContent = message;
-            
-            notification.className = 'notification';
-            notification.classList.add(type);
-            
-            icon.className = type === 'success' ? 'fas fa-check-circle' :
-                           type === 'error' ? 'fas fa-exclamation-circle' :
-                           'fas fa-exclamation-triangle';
-            
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-
-        // 导出配置函数供其他部分使用
-        window.getSupabaseConfig = function() {
-            return config;
-        };
     </script>
 </body>
 </html>
