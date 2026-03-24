@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>强力清理测试数据</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #fffaf0;
+            color: #333;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(255, 152, 0, 0.1);
+            border: 2px solid #ffecb3;
+        }
+        h1 { color: #ff9800; margin-bottom: 20px; }
+        .status {
+            background: #fff8e1;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+        button {
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 152, 0, 0.3);
+        }
+        button.danger {
+            background: linear-gradient(135deg, #f44336, #ef5350);
+        }
+        button.danger:hover {
+            box-shadow: 0 8px 20px rgba(244, 67, 54, 0.3);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 12px;
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+        .result.error {
+            background: #ffebee;
+            border-color: #ffcdd2;
+            color: #c62828;
+        }
+        .loading { color: #ff9800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 强力清理测试数据</h1>
+        
+        <div class="status" id="statusArea">
+            <div class="loading">正在检查当前数据状态...</div>
+        </div>
+        
+        <div>
+            <button onclick="forceClearData()" class="danger">
+                💥 强力清理（删除所有数据，强制重置为0）
+            </button>
+            
+            <button onclick="checkCurrentData()">
+                🔍 重新检查数据状态
+            </button>
+            
+            <button onclick="testLotterySystem()" style="background: linear-gradient(135deg, #4CAF50, #66BB6A);">
+                🎲 测试抽签系统（打开新标签）
+            </button>
+        </div>
+        
+        <div id="resultArea"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://flarbbfcedplhrpswscm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsYXJiYmZjZWRwbGhycHN3c2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDY4MjQsImV4cCI6MjA4OTkyMjgyNH0.6_j-QbOmgfWT5d_7M6cRFNPZo9JVRj1QQkiEZK5sTGY';
+
+        // 页面加载时检查状态
+        document.addEventListener('DOMContentLoaded', checkCurrentData);
+
+        async function checkCurrentData() {
+            const statusArea = document.getElementById('statusArea');
+            const resultArea = document.getElementById('resultArea');
+            
+            statusArea.innerHTML = '<div class="loading">正在检查数据状态...</div>';
+            resultArea.innerHTML = '';
+            
+            try {
+                // 检查抽签记录
+                const recordsResponse = await fetch(`${SUPABASE_URL}/rest/v1/lottery_records?select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY }
+                });
+                
+                let recordsCount = 0;
+                let recordsData = [];
+                
+                if (recordsResponse.ok) {
+                    recordsData = await recordsResponse.json();
+                    recordsCount = recordsData.length;
+                }
+                
+                // 检查选项计数
+                const optionsResponse = await fetch(`${SUPABASE_URL}/rest/v1/option_counts?select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY }
+                });
+                
+                let homeCount = 0;
+                let xinhongCount = 0;
+                let optionsData = [];
+                
+                if (optionsResponse.ok) {
+                    optionsData = await optionsResponse.json();
+                    optionsData.forEach(option => {
+                        if (option.option_name === '家里蹲') {
+                            homeCount = option.count || 0;
+                        } else if (option.option_name === '歆弘府') {
+                            xinhongCount = option.count || 0;
+                        }
+                    });
+                }
+                
+                // 显示状态
+                statusArea.innerHTML = `
+                    <h3>📊 当前数据状态</h3>
+                    <div style="text-align: left; margin: 15px 0;">
+                        <p><strong>抽签记录：</strong> ${recordsCount} 条</p>
+                        ${recordsCount > 0 ? `
+                            <div style="background: #ffebee; padding: 10px; border-radius: 6px; margin: 5px 0;">
+                                <small>包含数据：${JSON.stringify(recordsData.map(r => r.user_id))}</small>
+                            </div>
+                        ` : ''}
+                        <p><strong>家里蹲计数：</strong> ${homeCount} 票</p>
+                        <p><strong>歆弘府计数：</strong> ${xinhongCount} 票</p>
+                    </div>
+                    ${recordsCount > 0 || homeCount > 0 || xinhongCount > 0 ? 
+                        '<div style="color: #f44336; font-weight: bold;">⚠️ 还有数据未清理！请点击上方强力清理按钮</div>' : 
+                        '<div style="color: #4CAF50; font-weight: bold;">✅ 数据已全部清理干净！</div>'}
+                `;
+                
+            } catch (error) {
+                statusArea.innerHTML = `<div class="result error">检查失败：${error.message}</div>`;
+            }
+        }
+
+        async function forceClearData() {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = '<div class="loading">正在强力清理数据...</div>';
+            
+            try {
+                // 方法1：尝试直接DELETE所有记录
+                await fetch(`${SUPABASE_URL}/rest/v1/lottery_records`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Prefer': 'return=minimal'
+                    }
+                });
+                
+                // 方法2：强制更新选项计数为0
+                await fetch(`${SUPABASE_URL}/rest/v1/option_counts?option_name=eq.家里蹲`, {
+                    method: 'PUT',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ option_name: '家里蹲', count: 0 })
+                });
+                
+                await fetch(`${SUPABASE_URL}/rest/v1/option_counts?option_name=eq.歆弘府`, {
+                    method: 'PUT',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ option_name: '歆弘府', count: 0 })
+                });
+                
+                resultArea.innerHTML = `
+                    <div class="result">
+                        ✅ 强力清理完成！
+                        <p style="margin-top: 10px;">
+                            已使用多种方法确保数据被清理：
+                            1. DELETE所有抽签记录
+                            2. PUT方式重置选项计数为0
+                        </p>
+                    </div>
+                `;
+                
+                // 重新检查状态
+                setTimeout(checkCurrentData, 1000);
+                
+            } catch (error) {
+                resultArea.innerHTML = `<div class="result error">清理失败：${error.message}</div>`;
+            }
+        }
+
+        function testLotterySystem() {
+            window.open('https://shipeizai-cell.github.io/team-lottery/lottery-final.html', '_blank');
+        }
+    </script>
+</body>
+</html>
