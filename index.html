@@ -187,27 +187,25 @@
 
     <script>
         function startLottery() {
-            // 检查是否已参与
-            const userId = localStorage.getItem('lottery_user_id');
-            const participated = localStorage.getItem('lottery_participated_' + userId);
-            
-            if (participated === 'true') {
-                // 如果已参与，直接跳转到抽签页面
-                window.location.href = 'lottery-public.html';
-            } else {
-                // 首次参与，跳转到抽签页面
-                window.location.href = 'lottery-public.html';
-            }
+            // 推荐使用实时同步版本（Firebase实时数据库）
+            window.open('lottery-realtime.html', '_blank');
         }
         
-        // 页面加载时检查统计状态
+        function startSimpleLottery() {
+            // 简单版本（无跨设备同步）
+            window.open('lottery-public.html', '_blank');
+        }
+        
+        function openAdminPanel() {
+            // 管理员面板（仅限你自己使用）
+            window.open('admin-panel.html', '_blank');
+        }
+        
+        // 页面加载时显示版本信息
         document.addEventListener('DOMContentLoaded', function() {
-            // 预加载统计，优化体验
-            const savedStats = localStorage.getItem('lottery_global_stats');
-            if (!savedStats) {
-                // 初始化统计数据
-                localStorage.setItem('lottery_global_stats', JSON.stringify({ home: 0, restaurant: 0 }));
-            }
+            console.log('🎲 团建饭店抽签系统已加载');
+            console.log('📱 推荐使用：lottery-realtime.html（多设备实时同步）');
+            console.log('🛠️ 管理面板：admin-panel.html');
         });
     </script>
 </body>
