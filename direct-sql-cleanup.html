@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直接SQL清理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #fffaf0;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(255, 152, 0, 0.1);
+            border: 2px solid #ffecb3;
+        }
+        h1 { color: #ff9800; margin-bottom: 20px; text-align: center; }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #ffecb3;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 15px 0;
+            resize: vertical;
+            background: #f9f9f9;
+        }
+        button {
+            background: linear-gradient(135deg, #f44336, #ef5350);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(244, 67, 54, 0.3);
+        }
+        button.success {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+        }
+        button.success:hover {
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .result.error {
+            background: #ffebee;
+            border-color: #ffcdd2;
+            color: #c62828;
+        }
+        .loading { color: #ff9800; text-align: center; padding: 20px; }
+        .status {
+            background: #fff8e1;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+        .status h3 { margin-top: 0; color: #ff9800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 直接SQL清理</h1>
+        
+        <div class="status">
+            <h3>当前问题：</h3>
+            <p>PATCH/PUT方法都无法清理数据，显示家里蹲:2, 歆弘府:1</p>
+            <p>可能原因：权限问题或数据库限制</p>
+        </div>
+        
+        <h3>选项1：使用SQL RPC函数清理</h3>
+        <textarea id="sqlText">-- 清理所有数据并重置为0
+-- 方法1：直接更新计数
+UPDATE option_counts SET count = 0 WHERE option_name IN ('家里蹲', '歆弘府');
+
+-- 方法2：清空抽签记录
+TRUNCATE TABLE lottery_records;
+
+-- 方法3：验证结果
+SELECT option_name, count FROM option_counts;</textarea>
+        
+        <button onclick="executeDirectSQL()">执行SQL清理</button>
+        
+        <h3 style="margin-top: 30px;">选项2：使用预设的清理脚本</h3>
+        <button onclick="runCleanupScript1()" class="success">执行清理脚本1（仅重置计数）</button>
+        <button onclick="runCleanupScript2()" class="success">执行清理脚本2（全部重置）</button>
+        
+        <h3 style="margin-top: 30px;">选项3：手动验证</h3>
+        <button onclick="verifyData()">验证当前数据状态</button>
+        
+        <div id="resultArea"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://flarbbfcedplhrpswscm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsYXJiYmZjZWRwbGhycHN3c2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDY4MjQsImV4cCI6MjA4OTkyMjgyNH0.6_j-QbOmgfWT5d_7M6cRFNPZo9JVRj1QQkiEZK5sTGY';
+
+        // 执行自定义SQL
+        async function executeDirectSQL() {
+            const sqlText = document.getElementById('sqlText').value;
+            const resultArea = document.getElementById('resultArea');
+            
+            resultArea.innerHTML = '<div class="loading">正在执行SQL...</div>';
+            
+            try {
+                // 尝试使用RPC执行SQL
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/execute_sql`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sql: sqlText
+                    })
+                });
+                
+                let result;
+                try {
+                    result = await response.json();
+                } catch {
+                    result = await response.text();
+                }
+                
+                resultArea.innerHTML = `
+                    <div class="${response.ok ? 'result' : 'result error'}">
+                        <strong>SQL执行结果：HTTP ${response.status} ${response.statusText}</strong>
+                        <pre>${JSON.stringify(result, null, 2) || '（无返回内容）'}</pre>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultArea.innerHTML = `<div class="result error">执行失败：${error.message}</div>`;
+            }
+        }
+
+        // 清理脚本1：仅重置计数
+        async function runCleanupScript1() {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = '<div class="loading">正在执行清理脚本1...</div>';
+            
+            try {
+                // 直接使用INSERT ... ON CONFLICT (UPSERT)
+                const sql = `
+                    INSERT INTO option_counts (option_name, count) 
+                    VALUES ('家里蹲', 0), ('歆弘府', 0)
+                    ON CONFLICT (option_name) 
+                    DO UPDATE SET count = EXCLUDED.count;
+                `;
+                
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/execute_sql`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ sql })
+                });
+                
+                resultArea.innerHTML = `
+                    <div class="${response.ok ? 'result' : 'result error'}">
+                        <strong>清理脚本1结果：HTTP ${response.status}</strong>
+                        <p>尝试使用UPSERT重置计数...</p>
+                    </div>
+                `;
+                
+                // 验证结果
+                setTimeout(verifyData, 1000);
+                
+            } catch (error) {
+                resultArea.innerHTML = `<div class="result error">脚本1失败：${error.message}</div>`;
+            }
+        }
+
+        // 清理脚本2：全部重置
+        async function runCleanupScript2() {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = '<div class="loading">正在执行清理脚本2...</div>';
+            
+            try {
+                // 步骤1：删除所有抽签记录
+                await fetch(`${SUPABASE_URL}/rest/v1/lottery_records`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Prefer': 'return=minimal'
+                    }
+                });
+                
+                // 步骤2：删除option_counts记录
+                await fetch(`${SUPABASE_URL}/rest/v1/option_counts`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Prefer': 'return=minimal'
+                    }
+                });
+                
+                // 步骤3：重新插入option_counts
+                await fetch(`${SUPABASE_URL}/rest/v1/option_counts`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ option_name: '家里蹲', count: 0 })
+                });
+                
+                await fetch(`${SUPABASE_URL}/rest/v1/option_counts`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ option_name: '歆弘府', count: 0 })
+                });
+                
+                resultArea.innerHTML = `
+                    <div class="result">
+                        <strong>清理脚本2结果：</strong>
+                        <p>✅ 步骤1：已删除lottery_records</p>
+                        <p>✅ 步骤2：已删除option_counts</p>
+                        <p>✅ 步骤3：已重新插入option_counts（计数为0）</p>
+                        <p style="color: #4CAF50; font-weight: bold; margin-top: 10px;">🎉 数据已完全重置！</p>
+                    </div>
+                `;
+                
+                // 验证结果
+                setTimeout(verifyData, 1000);
+                
+            } catch (error) {
+                resultArea.innerHTML = `<div class="result error">脚本2失败：${error.message}</div>`;
+            }
+        }
+
+        // 验证数据
+        async function verifyData() {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = '<div class="loading">正在验证数据...</div>';
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/option_counts?select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                let homeCount = 0;
+                let xinhongCount = 0;
+                
+                data.forEach(item => {
+                    if (item.option_name === '家里蹲') {
+                        homeCount = item.count || 0;
+                    } else if (item.option_name === '歆弘府') {
+                        xinhongCount = item.count || 0;
+                    }
+                });
+                
+                resultArea.innerHTML = `
+                    <div class="${homeCount === 0 && xinhongCount === 0 ? 'result' : 'result error'}">
+                        <strong>验证结果：</strong>
+                        <p>家里蹲：<strong>${homeCount}</strong> 票</p>
+                        <p>歆弘府：<strong>${xinhongCount}</strong> 票</p>
+                        ${homeCount === 0 && xinhongCount === 0 ? 
+                            '<p style="color: #4CAF50; font-weight: bold;">✅ 数据已成功清理为0！</p>' : 
+                            '<p style="color: #f44336; font-weight: bold;">❌ 数据清理失败！</p>'}
+                        <pre style="margin-top: 10px;">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultArea.innerHTML = `<div class="result error">验证失败：${error.message}</div>`;
+            }
+        }
+
+        // 页面加载时验证一次
+        document.addEventListener('DOMContentLoaded', verifyData);
+    </script>
+</body>
+</html>

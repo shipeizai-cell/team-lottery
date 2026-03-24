@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>紧急数据清理工具</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #fffaf0;
+            color: #333;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(255, 152, 0, 0.1);
+            border: 2px solid #ffecb3;
+        }
+        h1 { color: #ff9800; margin-bottom: 20px; }
+        .status {
+            background: #fff8e1;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+            text-align: left;
+        }
+        button {
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 152, 0, 0.3);
+        }
+        button.danger {
+            background: linear-gradient(135deg, #f44336, #ef5350);
+        }
+        button.danger:hover {
+            box-shadow: 0 8px 20px rgba(244, 67, 54, 0.3);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 12px;
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+            text-align: left;
+        }
+        .result.error {
+            background: #ffebee;
+            border-color: #ffcdd2;
+            color: #c62828;
+        }
+        .result pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .loading { color: #ff9800; }
+        .method-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+        }
+        .method-title {
+            font-weight: bold;
+            color: #2196f3;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 紧急数据清理工具</h1>
+        
+        <div class="status" id="statusArea">
+            <div class="loading">正在检查当前数据状态...</div>
+        </div>
+        
+        <div class="method-section">
+            <div class="method-title">方法1：使用PATCH更新</div>
+            <button onclick="method1Patch()">尝试PATCH方法清理</button>
+        </div>
+        
+        <div class="method-section">
+            <div class="method-title">方法2：使用DELETE + INSERT</div>
+            <button class="danger" onclick="method2DeleteInsert()">删除旧记录 + 插入新记录</button>
+        </div>
+        
+        <div class="method-section">
+            <div class="method-title">方法3：直接查询所有数据</div>
+            <button onclick="method3QueryAll()">查看所有option_counts数据</button>
+        </div>
+        
+        <div class="method-section">
+            <div class="method-title">方法4：使用UPSERT</div>
+            <button onclick="method4Upsert()">使用UPSERT重置计数</button>
+        </div>
+        
+        <button onclick="checkCurrentData()" style="background: linear-gradient(135deg, #4CAF50, #66BB6A);">
+            🔄 刷新查看当前状态
+        </button>
+        
+        <div id="resultArea"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://flarbbfcedplhrpswscm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsYXJiYmZjZWRwbGhycHN3c2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDY4MjQsImV4cCI6MjA4OTkyMjgyNH0.6_j-QbOmgfWT5d_7M6cRFNPZo9JVRj1QQkiEZK5sTGY';
+
+        // 页面加载时检查状态
+        document.addEventListener('DOMContentLoaded', checkCurrentData);
+
+        async function checkCurrentData() {
+            const statusArea = document.getElementById('statusArea');
+            const resultArea = document.getElementById('resultArea');
+            
+            statusArea.innerHTML = '<div class="loading">正在检查数据状态...</div>';
+            resultArea.innerHTML = '';
+            
+            try {
+                // 查询option_counts
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/option_counts?select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                let homeCount = 0;
+                let xinhongCount = 0;
+                let fullData = '';
+                
+                data.forEach(item => {
+                    if (item.option_name === '家里蹲') {
+                        homeCount = item.count || 0;
+                    } else if (item.option_name === '歆弘府') {
+                        xinhongCount = item.count || 0;
+                    }
+                });
+                
+                fullData = JSON.stringify(data, null, 2);
+                
+                statusArea.innerHTML = `
+                    <h3>📊 当前数据状态</h3>
+                    <div style="margin: 15px 0;">
+                        <p><strong>家里蹲：</strong> <span style="color: #ff9800; font-size: 24px;">${homeCount}</span> 票</p>
+                        <p><strong>歆弘府：</strong> <span style="color: #ff9800; font-size: 24px;">${xinhongCount}</span> 票</p>
+                        <p><strong>总票数：</strong> ${homeCount + xinhongCount} 票</p>
+                    </div>
+                    <details style="margin-top: 15px;">
+                        <summary style="cursor: pointer; color: #666;">查看完整数据</summary>
+                        <pre style="background: #f5f5f5; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 12px; overflow-x: auto;">${fullData}</pre>
+                    </details>
+                `;
+                
+            } catch (error) {
+                statusArea.innerHTML = `<div class="result error">检查失败：${error.message}</div>`;
+            }
+        }
+
+        // 方法1：使用PATCH
+        async function method1Patch() {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = '<div class="loading">正在使用PATCH方法清理...</div>';
+            
+            try {
+                // 清理家里蹲
+                const res1 = await fetch(`${SUPABASE_URL}/rest/v1/option_counts?option_name=eq.家里蹲`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify({ count: 0 })
+                });
+                
+                const res1Text = await res1.text();
+                
+                // 清理歆弘府
+                const res2 = await fetch(`${SUPABASE_URL}/rest/v1/option_counts?option_name=eq.歆弘府`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify({ count: 0 })
+                });
+                
+                const res2Text = await res2.text();
+                
+                resultArea.innerHTML = `
+                    <div class="result">
+                        <strong>方法1结果：</strong>
+                        <p>家里蹲更新：HTTP ${res1.status}</p>
+                        <pre>${res1Text || '(无返回内容)'}</pre>
+                        <p>歆弘府更新：HTTP ${res2.status}</p>
+                        <pre>${res2Text || '(无返回内容)'}</pre>
+                    </div>
+                `;
+                
+                setTimeout(checkCurrentData, 1000);
+                
+            } catch (error) {
+                resultArea.innerHTML = `<div class="result error">方法1失败：${error.message}</div>`;
+            }
+        }
+
+        // 方法2：DELETE + INSERT
+        async function method2DeleteInsert() {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = '<div class="loading">正在使用方法2...</div>';
+            
+            try {
+                // 删除所有记录
+                const deleteRes = await fetch(`${SUPABASE_URL}/rest/v1/option_counts`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Prefer': 'return=minimal'
+                    }
+                });
+                
+                // 插入新记录
+                const insertRes1 = await fetch(`${SUPABASE_URL}/rest/v1/option_counts`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ option_name: '家里蹲', count: 0 })
+                });
+                
+                const insertRes2 = await fetch(`${SUPABASE_URL}/rest/v1/option_counts`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ option_name: '歆弘府', count: 0 })
+                });
+                
+                resultArea.innerHTML = `
+                    <div class="result">
+                        <strong>方法2结果：</strong>
+                        <p>删除所有记录：HTTP ${deleteRes.status}</p>
+                        <p>插入家里蹲：HTTP ${insertRes1.status}</p>
+                        <p>插入歆弘府：HTTP ${insertRes2.status}</p>
+                        <p style="color: #4CAF50; margin-top: 10px;">✅ 数据已重置为0</p>
+                    </div>
+                `;
+                
+                setTimeout(checkCurrentData, 1000);
+                
+            } catch (error) {
+                resultArea.innerHTML = `<div class="result error">方法2失败：${error.message}</div>`;
+            }
+        }
+
+        // 方法3：查询所有数据
+        async function method3QueryAll() {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = '<div class="loading">正在查询...</div>';
+            
+            try {
+                // 查询option_counts
+                const countsRes = await fetch(`${SUPABASE_URL}/rest/v1/option_counts?select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY }
+                });
+                
+                const countsData = await countsRes.json();
+                
+                // 查询lottery_records
+                const recordsRes = await fetch(`${SUPABASE_URL}/rest/v1/lottery_records?select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY }
+                });
+                
+                const recordsData = await recordsRes.json();
+                
+                resultArea.innerHTML = `
+                    <div class="result">
+                        <strong>完整数据查询结果：</strong>
+                        <h4 style="margin-top: 15px;">option_counts (${countsData.length}条)：</h4>
+                        <pre>${JSON.stringify(countsData, null, 2)}</pre>
+                        <h4 style="margin-top: 15px;">lottery_records (${recordsData.length}条)：</h4>
+                        <pre>${JSON.stringify(recordsData.slice(0, 5), null, 2)}${recordsData.length > 5 ? '\n... (还有' + (recordsData.length - 5) + '条)' : ''}</pre>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultArea.innerHTML = `<div class="result error">查询失败：${error.message}</div>`;
+            }
+        }
+
+        // 方法4：使用UPSERT
+        async function method4Upsert() {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = '<div class="loading">正在使用UPSERT方法...</div>';
+            
+            try {
+                const res1 = await fetch(`${SUPABASE_URL}/rest/v1/option_counts`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'resolution=merge-duplicates'
+                    },
+                    body: JSON.stringify({ option_name: '家里蹲', count: 0 })
+                });
+                
+                const res2 = await fetch(`${SUPABASE_URL}/rest/v1/option_counts`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'resolution=merge-duplicates'
+                    },
+                    body: JSON.stringify({ option_name: '歆弘府', count: 0 })
+                });
+                
+                resultArea.innerHTML = `
+                    <div class="result">
+                        <strong>方法4结果（UPSERT）：</strong>
+                        <p>家里蹲：HTTP ${res1.status}</p>
+                        <p>歆弘府：HTTP ${res2.status}</p>
+                        <p style="color: #4CAF50; margin-top: 10px;">✅ 尝试使用UPSERT重置</p>
+                    </div>
+                `;
+                
+                setTimeout(checkCurrentData, 1000);
+                
+            } catch (error) {
+                resultArea.innerHTML = `<div class="result error">方法4失败：${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
