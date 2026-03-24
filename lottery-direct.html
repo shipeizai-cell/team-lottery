@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 团建饭店投票 - 预配置版本</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+            padding: 40px;
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #1a2980, #26d0ce);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .status-card {
+            background: #e8f5e8;
+            border-left: 6px solid #4caf50;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .status-card.success {
+            background: #e8f5e8;
+            border-left: 6px solid #4caf50;
+        }
+        
+        .status-icon {
+            font-size: 2.5rem;
+            margin-right: 20px;
+            color: #4caf50;
+        }
+        
+        .vote-options {
+            display: flex;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .option-card {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: #3e54a3;
+        }
+        
+        .option-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(90deg, #1a2980, #26d0ce);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        
+        .share-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+        
+        .link-box {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 1.1rem;
+            word-break: break-all;
+        }
+        
+        .copy-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🎉 团建饭店投票系统</h1>
+            <p style="color: #7f8c8d; font-size: 1.2rem;">已预配置完成版本</p>
+        </div>
+        
+        <!-- 状态卡片 -->
+        <div class="status-card success">
+            <div style="display: flex; align-items: center;">
+                <i class="fas fa-check-circle status-icon"></i>
+                <div>
+                    <h3 style="color: #2c3e50; margin-bottom: 10px;">✅ 系统已预配置完成！</h3>
+                    <p style="color: #555; line-height: 1.6;">
+                        <strong>GitHub:</strong> shipeizai-cell/team-lottery<br>
+                        <strong>Supabase:</strong> flarbbfcedplhrpswscm 项目<br>
+                        <strong>数据库:</strong> participants 表已创建<br>
+                        <strong>链接:</strong> https://shipeizai-cell.github.io/team-lottery/<br>
+                        <strong>配置时间:</strong> 2026-03-25 00:05
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 投票选项 -->
+        <h2 style="color: #2c3e50; margin: 30px 0 20px;">选择你喜欢的饭店</h2>
+        <div class="vote-options">
+            <div class="option-card" onclick="vote('家里蹲')">
+                <div class="option-icon">🏠</div>
+                <h3 style="color: #1a2980;">家里蹲</h3>
+                <p style="color: #7f8c8d; margin: 10px 0;">温馨舒适，省钱省事</p>
+                <div class="vote-count" style="color: #4caf50; font-weight: bold;" id="count-home">-- 票</div>
+            </div>
+            
+            <div class="option-card" onclick="vote('歆弘府')">
+                <div class="option-icon">🍽️</div>
+                <h3 style="color: #1a2980;">歆弘府</h3>
+                <p style="color: #7f8c8d; margin: 10px 0;">豪华餐厅，美食盛宴</p>
+                <div class="vote-count" style="color: #4caf50; font-weight: bold;" id="count-restaurant">-- 票</div>
+            </div>
+        </div>
+        
+        <!-- 投票按钮 -->
+        <div style="margin: 30px 0;">
+            <button class="btn" onclick="vote('家里蹲')">
+                <i class="fas fa-vote-yea"></i> 投票给家里蹲
+            </button>
+            <button class="btn" onclick="vote('歆弘府')">
+                <i class="fas fa-utensils"></i> 投票给歆弘府
+            </button>
+        </div>
+        
+        <!-- 分享链接 -->
+        <div class="share-section">
+            <h3 style="color: #2c3e50; margin-bottom: 15px;"><i class="fas fa-share-alt"></i> 分享投票链接</h3>
+            <p style="color: #7f8c8d; margin-bottom: 15px;">复制以下链接发到钉钉群，同事们点击即可投票：</p>
+            
+            <div class="link-box" id="vote-link">
+                https://shipeizai-cell.github.io/team-lottery/
+            </div>
+            
+            <button class="copy-btn" onclick="copyLink()">
+                <i class="fas fa-copy"></i> 复制链接
+            </button>
+        </div>
+        
+        <!-- 钉钉分享模板 -->
+        <div class="share-section" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+            <h3 style="margin-bottom: 15px;"><i class="fab fa-dingtalk"></i> 钉钉分享模板</h3>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left;">
+                <pre style="margin: 0; white-space: pre-wrap; font-family: 'Microsoft YaHei', sans-serif; font-size: 0.95rem;">🎉 团建饭店投票开始啦！
+
+选项：
+🏠 家里蹲 - 温馨舒适，省钱省事
+🍽️ 歆弘府 - 豪华餐厅，美食盛宴
+
+规则：
+✅ 每人只能投一次
+✅ 投票截止：今晚24:00
+✅ 实时统计，公平公正
+
+投票链接：https://shipeizai-cell.github.io/team-lottery/</pre>
+            </div>
+            <button class="btn" onclick="copyDingTalkTemplate()" style="background: white; color: #667eea;">
+                <i class="fas fa-copy"></i> 复制模板
+            </button>
+        </div>
+        
+        <!-- 系统状态 -->
+        <div class="stats">
+            <div class="stat-item">
+                <i class="fas fa-database" style="color: #1a2980; font-size: 2rem;"></i>
+                <h4 style="margin: 10px 0;">Supabase状态</h4>
+                <p style="color: #4caf50; font-weight: bold;" id="db-status">检查中...</p>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-users" style="color: #1a2980; font-size: 2rem;"></i>
+                <h4 style="margin: 10px 0;">总投票数</h4>
+                <p style="color: #26d0ce; font-size: 1.5rem; font-weight: bold;" id="total-votes">--</p>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-clock" style="color: #1a2980; font-size: 2rem;"></i>
+                <h4 style="margin: 10px 0;">更新时间</h4>
+                <p id="last-update">--:--:--</p>
+            </div>
+        </div>
+        
+        <!-- 投票记录 -->
+        <div style="margin-top: 40px; text-align: left;">
+            <h3 style="color: #2c3e50; margin-bottom: 15px;"><i class="fas fa-history"></i> 最新投票</h3>
+            <div id="recent-votes" style="color: #7f8c8d; font-style: italic;">
+                加载投票记录...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 预配置的Supabase信息
+        const SUPABASE_URL = 'https://flarbbfcedplhrpswscm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsYXJiYmZjZWRwbGhycHN3c2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDY4MjQsImV4cCI6MjA4OTkyMjgyNH0.6_j-QbOmgfWT5d_7M6cRFNPZo9JVRj1QQkiEZK5sTGY';
+        
+        // 创建Supabase客户端
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // 用户ID（使用浏览器指纹）
+        let userId = null;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeUser();
+            checkDatabase();
+            loadStats();
+            
+            // 每10秒更新一次统计
+            setInterval(loadStats, 10000);
+        });
+        
+        // 初始化用户
+        function initializeUser() {
+            // 尝试从localStorage获取用户ID
+            userId = localStorage.getItem('vote_user_id');
+            
+            if (!userId) {
+                // 创建新的用户ID
+                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+                localStorage.setItem('vote_user_id', userId);
+            }
+            
+            console.log('用户ID:', userId);
+        }
+        
+        // 检查数据库连接
+        async function checkDatabase() {
+            try {
+                const statusElement = document.getElementById('db-status');
+                statusElement.textContent = '连接中...';
+                
+                // 简单查询测试
+                const { data, error } = await supabase
+                    .from('participants')
+                    .select('*', { count: 'exact', head: true });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                statusElement.innerHTML = '<span style="color: #4caf50">✅ 连接正常</span>';
+                console.log('数据库连接测试成功');
+            } catch (error) {
+                document.getElementById('db-status').innerHTML = 
+                    '<span style="color: #f44336">❌ 连接失败</span>';
+                console.error('数据库连接失败:', error);
+            }
+        }
+        
+        // 加载统计数据
+        async function loadStats() {
+            try {
+                // 获取总票数
+                const { data: votes, error: votesError } = await supabase
+                    .from('participants')
+                    .select('*');
+                
+                if (votesError) throw votesError;
+                
+                // 计算各选项票数
+                const homeCount = votes.filter(v => v.choice === '家里蹲').length;
+                const restaurantCount = votes.filter(v => v.choice === '歆弘府').length;
+                const total = votes.length;
+                
+                // 更新显示
+                document.getElementById('count-home').textContent = `${homeCount} 票`;
+                document.getElementById('count-restaurant').textContent = `${restaurantCount} 票`;
+                document.getElementById('total-votes').textContent = `${total} 票`;
+                
+                // 更新最新投票记录
+                const recent = votes.slice(0, 5).reverse();
+                const recentHtml = recent.map(v => 
+                    `<div style="margin: 8px 0; padding: 8px; background: #f5f5f5; border-radius: 6px;">
+                        <strong>${v.user_name}</strong> 投票给 <strong>${v.choice}</strong> 
+                        <span style="color: #999; font-size: 0.9em;">(${new Date(v.created_at).toLocaleTimeString()})</span>
+                    </div>`
+                ).join('');
+                
+                document.getElementById('recent-votes').innerHTML = recentHtml || '暂无投票记录';
+                
+                // 更新时间
+                document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+                
+            } catch (error) {
+                console.error('加载统计失败:', error);
+                document.getElementById('recent-votes').innerHTML = 
+                    '<div style="color: #f44336">加载失败，请刷新页面</div>';
+            }
+        }
+        
+        // 投票
+        async function vote(choice) {
+            try {
+                // 检查用户是否已投票
+                const { data: existing, error: checkError } = await supabase
+                    .from('participants')
+                    .select('*')
+                    .eq('user_id', userId);
+                
+                if (checkError) throw checkError;
+                
+                if (existing && existing.length > 0) {
+                    alert('您已经投过票了！每人只能投一次哦。');
+                    return;
+                }
+                
+                // 准备用户信息
+                const userName = `用户_${userId.substr(0, 8)}`;
+                
+                // 插入投票记录
+                const { data, error } = await supabase
+                    .from('participants')
+                    .insert([
+                        {
+                            user_id: userId,
+                            user_name: userName,
+                            choice: choice,
+                            user_ip: 'unknown',
+                            user_agent: navigator.userAgent
+                        }
+                    ]);
+                
+                if (error) throw error;
+                
+                // 投票成功
+                alert(`🎉 投票成功！您选择了【${choice}】`);
+                
+                // 刷新统计
+                loadStats();
+                
+            } catch (error) {
+                console.error('投票失败:', error);
+                alert('投票失败，请刷新页面重试');
+            }
+        }
+        
+        // 复制链接
+        function copyLink() {
+            const link = document.getElementById('vote-link').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('✅ 链接已复制到剪贴板！');
+            });
+        }
+        
+        // 复制钉钉模板
+        function copyDingTalkTemplate() {
+            const template = `🎉 团建饭店投票开始啦！
+
+选项：
+🏠 家里蹲 - 温馨舒适，省钱省事
+🍽️ 歆弘府 - 豪华餐厅，美食盛宴
+
+规则：
+✅ 每人只能投一次
+✅ 投票截止：今晚24:00
+✅ 实时统计，公平公正
+
+投票链接：https://shipeizai-cell.github.io/team-lottery/`;
+            
+            navigator.clipboard.writeText(template).then(() => {
+                alert('✅ 钉钉模板已复制！直接粘贴到钉钉群即可');
+            });
+        }
+    </script>
+</body>
+</html>
