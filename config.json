@@ -1,0 +1,14 @@
+{
+    "system": {
+        "name": "团建饭店抽奖系统",
+        "version": "1.0",
+        "deploy_date": "2026-03-24 19:17:30"
+    },
+    "features": {
+        "multi_user": true,
+        "one_vote_per_user": true,
+        "real_time_stats": true,
+        "dingtalk_integration": true,
+        "supabase_backend": true
+    }
+}
