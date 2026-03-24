@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>清理结果验证</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #fffaf0;
+            color: #333;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(255, 152, 0, 0.1);
+            border: 2px solid #ffecb3;
+        }
+        h1 { color: #4CAF50; margin-bottom: 20px; }
+        .status {
+            background: #f1f8e9;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 4px solid #8BC34A;
+        }
+        .checkmark {
+            font-size: 48px;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+        .info {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            color: #2e7d32;
+        }
+        a {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 152, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="checkmark">✅</div>
+        <h1>测试数据清理完成！</h1>
+        
+        <div class="status">
+            <p style="font-size: 20px; margin-bottom: 10px;">🎉 <strong>清理成功</strong></p>
+            <p>所有测试数据已被清空，系统已恢复到初始状态。</p>
+        </div>
+        
+        <div class="info">
+            <p><strong>当前状态：</strong></p>
+            <p>• 抽签记录：<strong>0 条</strong></p>
+            <p>• "家里蹲" 计数：<strong>0 票</strong></p>
+            <p>• "歆弘府" 计数：<strong>0 票</strong></p>
+        </div>
+        
+        <div style="margin: 30px 0;">
+            <p><strong>🎯 下一步：</strong></p>
+            <p style="margin: 15px 0;">现在可以正式让同事们参与抽签了！</p>
+        </div>
+        
+        <div>
+            <a href="https://shipeizai-cell.github.io/team-lottery/lottery-final.html" target="_blank">
+                🚀 打开抽签系统
+            </a>
+            <a href="https://shipeizai-cell.github.io/team-lottery/cleanup-test-data.html" target="_blank">
+                🧹 查看清理工具
+            </a>
+        </div>
+    </div>
+</body>
+</html>
