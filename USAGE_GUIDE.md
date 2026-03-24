@@ -3,6 +3,11 @@
 ## 🚨 **Supabase问题说明**
 经过测试，发现Supabase API存在写入权限问题，无法通过网页更新数据。
 
+## 📱 **手机访问说明**
+- **首页地址**：`https://shipeizai-cell.github.io/team-lottery/`（推荐）
+- **直接链接**：`https://shipeizai-cell.github.io/team-lottery/lottery-public.html`
+- **如果404**：可能是GitHub Pages缓存问题，等待1-2分钟刷新即可
+
 ### **已发现的问题：**
 1. ✅ 可以读取数据（显示家里蹲:2, 歆弘府:1）
 2. ❌ **无法写入数据**（抽签后计数不增加）
