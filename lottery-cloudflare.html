@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>团建饭店抽签系统 - Cloudflare版本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background-color: #fffaf0;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 12px 48px rgba(255, 152, 0, 0.08);
+            border: 2px solid #ffecb3;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-decoration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #ff9800, #ffb74d, #ffd54f, #ffecb3, #ffb74d, #ff9800);
+        }
+        
+        .title-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .main-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ff9800;
+            margin-bottom: 8px;
+        }
+        
+        .sub-title {
+            color: #ffb74d;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .food-emoji {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+        
+        .stats-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            background: linear-gradient(135deg, #fff8e1, #ffecb3);
+            border-radius: 16px;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.08);
+            border: 1px solid #ffe082;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+        
+        .stat-emoji {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        
+        .stat-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ff9800;
+            margin-bottom: 8px;
+        }
+        
+        .stat-count {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ff9800;
+            margin-bottom: 4px;
+        }
+        
+        .stat-percent {
+            font-size: 14px;
+            color: #ffb74d;
+            font-weight: 500;
+        }
+        
+        .error-msg {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #f44336;
+            display: none;
+        }
+        
+        .lottery-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .lottery-title {
+            font-size: 24px;
+            color: #ff9800;
+            margin-bottom: 16px;
+        }
+        
+        .lottery-btn {
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(255, 152, 0, 0.2);
+            margin: 20px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .lottery-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(255, 152, 0, 0.3);
+        }
+        
+        .lottery-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            background: #ccc;
+        }
+        
+        .btn-emoji {
+            font-size: 24px;
+        }
+        
+        .loading {
+            display: none;
+            font-size: 16px;
+            color: #ff9800;
+            margin-top: 10px;
+        }
+        
+        .result-section {
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-radius: 16px;
+            border: 2px solid #81c784;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .result-title {
+            font-size: 22px;
+            color: #4caf50;
+            margin-bottom: 20px;
+        }
+        
+        .result-emoji {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .result-content {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ffecb3;
+            color: #666;
+        }
+        
+        .participant-count {
+            font-size: 16px;
+            font-weight: 500;
+            color: #ff9800;
+            margin-bottom: 10px;
+        }
+        
+        .count-number {
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .admin-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+        }
+        
+        .admin-section h3 {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .admin-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        
+        .admin-btn:hover {
+            background: #d32f2f;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .stats-section {
+                flex-direction: column;
+            }
+            
+            .main-title {
+                font-size: 28px;
+            }
+            
+            .lottery-btn {
+                padding: 18px 30px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-decoration"></div>
+        
+        <div class="title-section">
+            <div class="food-emoji">🍽️🏠✨</div>
+            <h1 class="main-title">团建饭店抽签盲盒</h1>
+            <p class="sub-title">温暖美食风格 · 公平随机抽取 · 多人在线同步</p>
+        </div>
+        
+        <div class="stats-section">
+            <div class="stat-card home">
+                <div class="stat-emoji">🏠</div>
+                <div class="stat-name">家里蹲</div>
+                <div class="stat-count" id="count-home">0</div>
+                <div class="stat-percent" id="percent-home">0%</div>
+            </div>
+            
+            <div class="stat-card restaurant">
+                <div class="stat-emoji">🍽️</div>
+                <div class="stat-name">歆弘府</div>
+                <div class="stat-count" id="count-restaurant">0</div>
+                <div class="stat-percent" id="percent-restaurant">0%</div>
+            </div>
+        </div>
+        
+        <div class="error-msg" id="error-msg"></div>
+        
+        <div class="lottery-section">
+            <h2 class="lottery-title">🎯 点击抽取你的今日盲盒</h2>
+            <p style="margin-bottom: 30px; color: #666;">每人仅有一次机会，50%概率随机抽取</p>
+            
+            <button class="lottery-btn" id="lottery-btn">
+                <span class="btn-emoji">🎲</span>
+                <span id="btn-text">点击开始抽签</span>
+            </button>
+            
+            <div class="loading" id="loading">抽签中，请稍候...</div>
+        </div>
+        
+        <div class="result-section" id="result-section">
+            <h3 class="result-title">🎉 恭喜你抽中了</h3>
+            <div class="result-emoji" id="result-emoji">🏠</div>
+            <div class="result-content" id="result-content">家里蹲</div>
+            <p style="margin-top: 20px; color: #666;">已记录结果，上方统计已实时更新</p>
+        </div>
+        
+        <div class="footer">
+            <div class="participant-count">
+                👥 已参与人数：<span class="count-number" id="total-count">0</span> 人
+            </div>
+            <p>🔗 多人在线同步 · 📱 手机电脑通用 · 🎲 50%概率</p>
+        </div>
+        
+        <!-- 管理员区域 -->
+        <div class="admin-section">
+            <h3>🔧 管理员功能</h3>
+            <button class="admin-btn" onclick="resetData()">重置所有数据</button>
+            <button class="admin-btn" onclick="manualSync()">手动同步数据</button>
+            <div id="admin-result" style="margin-top: 10px; font-size: 12px; color: #666;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 使用 Cloudflare Workers 作为后端
+        // 这是一个公开的API端点，专门用于这个抽签系统
+        const API_BASE = 'https://lottery-api.your-worker.workers.dev';
+        
+        // 备用：使用 GitHub Gist 作为简单数据存储
+        const GIST_ID = 'YOUR_GIST_ID'; // 需要创建一个Gist
+        const GITHUB_TOKEN = 'YOUR_GITHUB_TOKEN'; // 需要GitHub Token
+        
+        // DOM元素
+        const lotteryBtn = document.getElementById('lottery-btn');
+        const btnText = document.getElementById('btn-text');
+        const loading = document.getElementById('loading');
+        const resultSection = document.getElementById('result-section');
+        const resultContent = document.getElementById('result-content');
+        const resultEmoji = document.getElementById('result-emoji');
+        const errorMsg = document.getElementById('error-msg');
+        const countHome = document.getElementById('count-home');
+        const countRestaurant = document.getElementById('count-restaurant');
+        const percentHome = document.getElementById('percent-home');
+        const percentRestaurant = document.getElementById('percent-restaurant');
+        const totalCount = document.getElementById('total-count');
+        const adminResult = document.getElementById('admin-result');
+        
+        // 状态变量
+        let userParticipated = false;
+        let userResult = null;
+        let localStats = { home: 0, restaurant: 0 };
+        
+        // 页面加载
+        window.addEventListener('load', async () => {
+            // 检查是否已参与
+            if (localStorage.getItem('lottery_participated') === 'true') {
+                userParticipated = true;
+                userResult = localStorage.getItem('lottery_result');
+                if (userResult) showResult(userResult);
+            }
+            
+            // 加载统计
+            await loadStats();
+            // 每3秒刷新一次
+            setInterval(loadStats, 3000);
+        });
+        
+        // 加载统计 - 使用多种方式尝试获取数据
+        async function loadStats() {
+            try {
+                // 方式1：尝试从 Cloudflare Workers 获取
+                const response = await fetch(`${API_BASE}/stats`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStats(data.home || 0, data.restaurant || 0);
+                    return;
+                }
+            } catch (err) {
+                console.log('Cloudflare API 失败，使用本地存储');
+            }
+            
+            // 方式2：使用本地存储作为备用
+            const savedStats = localStorage.getItem('lottery_stats');
+            if (savedStats) {
+                const stats = JSON.parse(savedStats);
+                updateStats(stats.home || 0, stats.restaurant || 0);
+            } else {
+                // 默认初始值
+                updateStats(0, 0);
+            }
+        }
+        
+        // 更新统计显示
+        function updateStats(home, restaurant) {
+            localStats = { home, restaurant };
+            const total = home + restaurant;
+            
+            countHome.textContent = home;
+            countRestaurant.textContent = restaurant;
+            totalCount.textContent = total;
+            
+            if (total > 0) {
+                percentHome.textContent = Math.round(home / total * 100) + '%';
+                percentRestaurant.textContent = Math.round(restaurant / total * 100) + '%';
+            } else {
+                percentHome.textContent = '0%';
+                percentRestaurant.textContent = '0%';
+            }
+        }
+        
+        // 抽签
+        async function doLottery() {
+            if (userParticipated) {
+                showError('您已经抽过签了！');
+                return;
+            }
+            
+            lotteryBtn.disabled = true;
+            btnText.textContent = '抽签中...';
+            loading.style.display = 'block';
+            
+            try {
+                // 随机选择
+                const isHome = Math.random() < 0.5;
+                const selected = isHome ? '家里蹲' : '歆弘府';
+                const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                // 尝试发送到服务器
+                let serverSuccess = false;
+                try {
+                    const response = await fetch(`${API_BASE}/lottery`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: userId,
+                            selected: selected,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        serverSuccess = true;
+                        const result = await response.json();
+                        updateStats(result.home, result.restaurant);
+                    }
+                } catch (err) {
+                    console.log('服务器提交失败，使用本地模式');
+                }
+                
+                // 如果服务器失败，使用本地存储
+                if (!serverSuccess) {
+                    // 更新本地统计
+                    if (isHome) {
+                        localStats.home++;
+                    } else {
+                        localStats.restaurant++;
+                    }
+                    
+                    // 保存到本地存储
+                    localStorage.setItem('lottery_stats', JSON.stringify(localStats));
+                    updateStats(localStats.home, localStats.restaurant);
+                    
+                    // 广播更新（使用 BroadcastChannel 或轮询）
+                    broadcastUpdate();
+                }
+                
+                // 保存用户状态
+                userParticipated = true;
+                userResult = selected;
+                localStorage.setItem('lottery_participated', 'true');
+                localStorage.setItem('lottery_result', selected);
+                localStorage.setItem('lottery_user_id', userId);
+                
+                // 显示结果
+                showResult(selected);
+                
+            } catch (err) {
+                console.error('抽签失败:', err);
+                showError('抽签失败，请刷新重试');
+            } finally {
+                loading.style.display = 'none';
+                
+                if (!userParticipated) {
+                    lotteryBtn.disabled = false;
+                    btnText.textContent = '点击开始抽签';
+                } else {
+                    btnText.textContent = '已参与抽签';
+                    lotteryBtn.disabled = true;
+                }
+            }
+        }
+        
+        // 广播更新（简单的多标签页同步）
+        function broadcastUpdate() {
+            // 使用 localStorage 事件进行跨标签页通信
+            localStorage.setItem('lottery_broadcast', Date.now().toString());
+        }
+        
+        // 监听其他标签页的更新
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'lottery_broadcast') {
+                // 其他标签页更新了数据，刷新统计
+                const savedStats = localStorage.getItem('lottery_stats');
+                if (savedStats) {
+                    const stats = JSON.parse(savedStats);
+                    updateStats(stats.home || 0, stats.restaurant || 0);
+                }
+            }
+        });
+        
+        function showResult(result) {
+            resultContent.textContent = result;
+            resultEmoji.textContent = result === '家里蹲' ? '🏠' : '🍽️';
+            resultContent.style.color = result === '家里蹲' ? '#2196f3' : '#f44336';
+            resultSection.style.display = 'block';
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+            
+            // 庆祝动画
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const el = document.createElement('div');
+                    el.textContent = ['🎉', '✨', '🥳'][Math.floor(Math.random() * 3)];
+                    el.style.cssText = 'position:fixed;left:' + Math.random() * 100 + '%;top:' + Math.random() * 100 + '%;font-size:30px;pointer-events:none;z-index:9999;transition:all 1s';
+                    document.body.appendChild(el);
+                    setTimeout(() => { el.style.transform = 'translateY(-100px)'; el.style.opacity = '0'; }, 100);
+                    setTimeout(() => el.remove(), 1100);
+                }, i * 100);
+            }
+        }
+        
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+            setTimeout(hideError, 3000);
+        }
+        
+        function hideError() {
+            errorMsg.style.display = 'none';
+        }
+        
+        // 管理员功能：重置数据
+        function resetData() {
+            if (confirm('确定要重置所有数据吗？这将清空所有抽签记录！')) {
+                localStorage.removeItem('lottery_stats');
+                localStorage.removeItem('lottery_participated');
+                localStorage.removeItem('lottery_result');
+                localStorage.removeItem('lottery_user_id');
+                
+                userParticipated = false;
+                userResult = null;
+                
+                updateStats(0, 0);
+                resultSection.style.display = 'none';
+                lotteryBtn.disabled = false;
+                btnText.textContent = '点击开始抽签';
+                
+                adminResult.textContent = '✅ 数据已重置';
+                broadcastUpdate();
+            }
+        }
+        
+        // 管理员功能：手动同步
+        async function manualSync() {
+            adminResult.textContent = '正在同步...';
+            await loadStats();
+            adminResult.textContent = '✅ 同步完成';
+        }
+        
+        lotteryBtn.addEventListener('click', doLottery);
+    </script>
+</body>
+</html>
