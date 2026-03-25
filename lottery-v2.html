@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍽️ 团建饭店抽签</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #fff8e1 0%, #ffe0b2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 28px;
+            padding: 40px 36px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 16px 48px rgba(255,152,0,.18);
+            border: 2px solid #ffd180;
+        }
+
+        /* 头部 */
+        .header { text-align: center; margin-bottom: 32px; }
+        .header .icon { font-size: 52px; line-height: 1; margin-bottom: 12px; }
+        .header h1 { font-size: 26px; font-weight: 700; color: #e65100; }
+        .header p { margin-top: 6px; font-size: 14px; color: #999; }
+
+        /* 统计 */
+        .stats { display: flex; gap: 16px; margin-bottom: 32px; }
+        .stat {
+            flex: 1;
+            padding: 20px 10px;
+            border-radius: 18px;
+            text-align: center;
+            border: 2px solid transparent;
+        }
+        .stat.home { background: #e3f2fd; border-color: #90caf9; }
+        .stat.rest { background: #f1f8e9; border-color: #aed581; }
+        .stat .emoji { font-size: 36px; line-height: 1; margin-bottom: 6px; }
+        .stat .name { font-size: 15px; font-weight: 600; color: #555; margin-bottom: 8px; }
+        .stat .num { font-size: 40px; font-weight: 800; color: #ff6f00; line-height: 1; }
+        .stat .pct { font-size: 13px; color: #999; margin-top: 4px; }
+
+        /* 总人数 */
+        .total-row {
+            text-align: center;
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 28px;
+        }
+        .total-row strong { color: #ff6f00; font-size: 20px; }
+
+        /* 按钮区 */
+        .btn-wrap { text-align: center; margin-bottom: 16px; }
+
+        .btn-lottery {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 18px 48px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(255,152,0,.4);
+            transition: transform .15s, box-shadow .15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-lottery:active { transform: scale(.96); }
+        .btn-lottery:disabled {
+            background: linear-gradient(135deg, #ddd, #bbb);
+            color: #999;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .btn-lottery .spin { display: none; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 同步状态 */
+        .sync-tip {
+            text-align: center;
+            font-size: 13px;
+            color: #aaa;
+            margin-top: 10px;
+            height: 18px;
+        }
+
+        /* 结果弹窗 */
+        .result-box {
+            display: none;
+            margin-top: 24px;
+            padding: 28px;
+            border-radius: 20px;
+            text-align: center;
+            animation: popIn .4s ease;
+        }
+        .result-box.home { background: #e3f2fd; border: 3px solid #90caf9; }
+        .result-box.rest { background: #f1f8e9; border: 3px solid #aed581; }
+        @keyframes popIn {
+            0%  { transform: scale(.8); opacity: 0; }
+            100%{ transform: scale(1);  opacity: 1; }
+        }
+        .result-box .big-emoji { font-size: 72px; line-height: 1; margin-bottom: 10px; }
+        .result-box .big-name  { font-size: 36px; font-weight: 800; color: #2e7d32; }
+        .result-box .sub       { font-size: 14px; color: #888; margin-top: 8px; }
+
+        /* 错误提示 */
+        .err {
+            display: none;
+            background: #fff3e0;
+            border: 2px solid #ffb74d;
+            color: #e65100;
+            border-radius: 14px;
+            padding: 14px;
+            margin-top: 16px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        @media(max-width:480px) {
+            .card { padding: 28px 20px; }
+            .stat .num { font-size: 34px; }
+            .btn-lottery { padding: 16px 36px; font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <div class="icon">🍽️</div>
+        <h1>团建饭店抽签</h1>
+        <p>多人在线实时同步 · 每人仅限一次 · 50% 公平随机</p>
+    </div>
+
+    <!-- 统计 -->
+    <div class="stats">
+        <div class="stat home">
+            <div class="emoji">🏠</div>
+            <div class="name">家里蹲</div>
+            <div class="num" id="cnt-home">0</div>
+            <div class="pct" id="pct-home">—</div>
+        </div>
+        <div class="stat rest">
+            <div class="emoji">🍽️</div>
+            <div class="name">歆弘府</div>
+            <div class="num" id="cnt-rest">0</div>
+            <div class="pct" id="pct-rest">—</div>
+        </div>
+    </div>
+
+    <div class="total-row">
+        👥 已参与：<strong id="cnt-total">0</strong> 人
+    </div>
+
+    <!-- 按钮 -->
+    <div class="btn-wrap">
+        <button class="btn-lottery" id="btn" onclick="doLottery()">
+            <span id="btn-icon">🎲</span>
+            <span class="spin" id="btn-spin">⏳</span>
+            <span id="btn-text">点击抽签</span>
+        </button>
+    </div>
+    <div class="sync-tip" id="sync-tip">🔄 连接中…</div>
+
+    <!-- 结果 -->
+    <div class="result-box" id="result-box">
+        <div class="big-emoji" id="res-emoji"></div>
+        <div class="big-name"  id="res-name"></div>
+        <div class="sub">已实时同步到所有人 ✨</div>
+    </div>
+
+    <div class="err" id="err-box"></div>
+</div>
+
+<!-- Supabase JS SDK v2 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ── 配置 ── */
+const SB_URL = 'https://flarbbfcedplhrpswscm.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsYXJiYmZjZWRwbGhycHN3c2NtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDY4MjQsImV4cCI6MjA4OTkyMjgyNH0.6_j-QbOmgfWT5d_7M6cRFNPZo9JVRj1QQkiEZK5sTGY';
+
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+/* ── 状态 ── */
+let participated = false;
+const UID_KEY   = 'lottery_v2_uid';
+const DONE_KEY  = 'lottery_v2_done';
+const RES_KEY   = 'lottery_v2_result';
+
+/* ── DOM ── */
+const btn      = document.getElementById('btn');
+const btnIcon  = document.getElementById('btn-icon');
+const btnSpin  = document.getElementById('btn-spin');
+const btnText  = document.getElementById('btn-text');
+const syncTip  = document.getElementById('sync-tip');
+const resultBox= document.getElementById('result-box');
+const errBox   = document.getElementById('err-box');
+
+/* ── 用户 ID ── */
+function getUID() {
+    let uid = localStorage.getItem(UID_KEY);
+    if (!uid) {
+        uid = 'u_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+        localStorage.setItem(UID_KEY, uid);
+    }
+    return uid;
+}
+
+/* ── 刷新统计 ── */
+async function refreshStats() {
+    const { data, error } = await sb
+        .from('lottery_records')
+        .select('selected_option');
+
+    if (error) {
+        syncTip.textContent = '⚠️ 数据获取失败';
+        return;
+    }
+
+    let home = 0, rest = 0;
+    data.forEach(r => {
+        if (r.selected_option === '家里蹲') home++;
+        else rest++;
+    });
+    const total = home + rest;
+
+    document.getElementById('cnt-home').textContent = home;
+    document.getElementById('cnt-rest').textContent = rest;
+    document.getElementById('cnt-total').textContent = total;
+
+    if (total > 0) {
+        document.getElementById('pct-home').textContent = Math.round(home / total * 100) + '%';
+        document.getElementById('pct-rest').textContent = Math.round(rest / total * 100) + '%';
+    } else {
+        document.getElementById('pct-home').textContent = '—';
+        document.getElementById('pct-rest').textContent = '—';
+    }
+
+    syncTip.textContent = '✅ 实时同步中 · ' + new Date().toLocaleTimeString();
+}
+
+/* ── Realtime 监听 ── */
+function setupRealtime() {
+    sb.channel('lottery_changes')
+        .on('postgres_changes',
+            { event: '*', schema: 'public', table: 'lottery_records' },
+            () => refreshStats()
+        )
+        .subscribe(status => {
+            if (status === 'SUBSCRIBED') {
+                syncTip.textContent = '✅ 实时同步已连接';
+            } else if (status === 'CHANNEL_ERROR') {
+                syncTip.textContent = '⚠️ 实时同步断开，将轮询刷新';
+                // 降级为 5 秒轮询
+                setInterval(refreshStats, 5000);
+            }
+        });
+}
+
+/* ── 恢复用户状态 ── */
+function restoreState() {
+    const done   = localStorage.getItem(DONE_KEY);
+    const result = localStorage.getItem(RES_KEY);
+    const uid    = getUID();
+
+    if (done === uid && result) {
+        participated = true;
+        markDone();
+        showResult(result, false);
+    }
+}
+
+/* ── 抽签 ── */
+async function doLottery() {
+    if (participated) return;
+
+    setLoading(true);
+    hideErr();
+
+    const uid    = getUID();
+    const chosen = Math.random() < 0.5 ? '家里蹲' : '歆弘府';
+
+    const { error } = await sb.from('lottery_records').insert({
+        user_id        : uid,
+        selected_option: chosen,
+        user_ip        : null,
+        user_agent     : navigator.userAgent
+    });
+
+    setLoading(false);
+
+    if (error) {
+        showErr('抽签失败，请刷新后重试（' + error.message + '）');
+        return;
+    }
+
+    participated = true;
+    localStorage.setItem(DONE_KEY, uid);
+    localStorage.setItem(RES_KEY, chosen);
+
+    markDone();
+    showResult(chosen, true);
+    await refreshStats();
+}
+
+/* ── 工具函数 ── */
+function setLoading(on) {
+    btn.disabled = on;
+    btnIcon.style.display = on ? 'none' : 'inline';
+    btnSpin.style.display = on ? 'inline' : 'none';
+    btnText.textContent   = on ? '抽签中…' : (participated ? '已参与抽签' : '点击抽签');
+}
+
+function markDone() {
+    btn.disabled = true;
+    btnIcon.style.display = 'inline';
+    btnSpin.style.display = 'none';
+    btnText.textContent   = '已参与抽签';
+    btn.style.background  = 'linear-gradient(135deg,#ddd,#bbb)';
+    btn.style.color       = '#999';
+    btn.style.boxShadow   = 'none';
+}
+
+function showResult(option, animate) {
+    const isHome = option === '家里蹲';
+    const box    = resultBox;
+    box.className = 'result-box ' + (isHome ? 'home' : 'rest');
+    document.getElementById('res-emoji').textContent = isHome ? '🏠' : '🍽️';
+    document.getElementById('res-name').textContent  = option;
+    box.style.display = 'block';
+    if (animate) setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+}
+
+function showErr(msg) {
+    errBox.textContent    = msg;
+    errBox.style.display  = 'block';
+}
+
+function hideErr() {
+    errBox.style.display = 'none';
+}
+
+/* ── 启动 ── */
+document.addEventListener('DOMContentLoaded', async () => {
+    restoreState();
+    await refreshStats();
+    setupRealtime();
+});
+</script>
+</body>
+</html>
